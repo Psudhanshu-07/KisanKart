@@ -34,7 +34,7 @@ def get_approx_distance(origin: str, destination: str) -> float:
 
 class SmartMatchingEngine:
     """
-    Smart Multi-Supplier Matching Engine for Farm2Market.
+    Smart Multi-Supplier Matching Engine for KisanKart.
     Formula rebalanced to guarantee exactly 100.0%:
       - Quantity Match: 40.0%
       - Distance:       20.0%

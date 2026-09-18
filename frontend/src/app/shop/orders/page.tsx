@@ -165,7 +165,7 @@ export default function ConsumerOrdersPage() {
                 </div>
                 <div>
                   <span className="text-slate-400 block text-[10px]">SUPPLIER PLATFORM</span>
-                  <span className="font-bold text-slate-800">Farm2Market Procurement Hub</span>
+                  <span className="font-bold text-slate-800">KisanKart Procurement Hub</span>
                 </div>
               </div>
 

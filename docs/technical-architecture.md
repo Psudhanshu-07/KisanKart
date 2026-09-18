@@ -1,11 +1,11 @@
-# Farm2Market: Technical Architecture Document (SIH 2026)
+# KisanKart: Technical Architecture Document (SIH 2026)
 
 ## 1. Executive Summary & Product Positioning
 
-**Farm2Market** is a digital agricultural marketplace and procurement-intelligence platform that connects **Farmers, FPOs, Buyers** (restaurants, hotels, hostels, institutions, consumers), **Logistics/Drivers**, and **Administrators/Government Stakeholders**.
+**KisanKart** is a digital agricultural marketplace and procurement-intelligence platform that connects **Farmers, FPOs, Buyers** (restaurants, hotels, hostels, institutions, consumers), **Logistics/Drivers**, and **Administrators/Government Stakeholders**.
 
 ### Product Positioning
-> **Farm2Market is a lightweight, explainable, multi-stakeholder orchestration layer focused on aggregating demand across buyers and coordinating supply from multiple farmers/FPOs, with farmer-first UX and actionable AI.**
+> **KisanKart is a lightweight, explainable, multi-stakeholder orchestration layer focused on aggregating demand across buyers and coordinating supply from multiple farmers/FPOs, with farmer-first UX and actionable AI.**
 > We do not claim to have "invented agricultural logistics" or that "nobody else does this." Rather, we eliminate fragmentation, guarantee explainable decisions, ensure transparent farmer realisations, and provide actionable intelligence.
 
 ---

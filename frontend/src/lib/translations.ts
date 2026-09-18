@@ -22,7 +22,7 @@ export const translations = {
       buyerDescription: "Shoppers can sign in, add a delivery address, place orders, and pay using direct payment instructions from verified sellers.",
       browseShop: "Browse Consumer Shop",
       systemCore: "System Core",
-      enginesTitle: "The Four Technical Engines Powering Farm2Market"
+      enginesTitle: "The Four Technical Engines Powering KisanKart"
     },
     exploreMarketplace: "Explore Marketplace",
     postRequirement: "Post a Requirement",
@@ -113,7 +113,7 @@ export const translations = {
       buyerDescription: "खरीदार लॉगिन कर सकते हैं, डिलीवरी पता जोड़ सकते हैं, ऑर्डर कर सकते हैं और सत्यापित विक्रेताओं के निर्देशों से भुगतान कर सकते हैं।",
       browseShop: "उपभोक्ता दुकान देखें",
       systemCore: "सिस्टम कोर",
-      enginesTitle: "Farm2Market को चलाने वाले चार तकनीकी इंजन"
+      enginesTitle: "KisanKart को चलाने वाले चार तकनीकी इंजन"
     },
     exploreMarketplace: "मंडी देखें",
     postRequirement: "मांग दर्ज करें",
@@ -204,7 +204,7 @@ export const translations = {
       buyerDescription: "खरेदीदार लॉगिन करू शकतात, डिलिव्हरीचा पत्ता जोडू शकतात, ऑर्डर देऊ शकतात आणि सत्यापित विक्रेत्यांच्या सूचनांनुसार पैसे देऊ शकतात.",
       browseShop: "ग्राहक दुकान पहा",
       systemCore: "सिस्टम कोर",
-      enginesTitle: "Farm2Market चालवणारे चार तांत्रिक इंजिन"
+      enginesTitle: "KisanKart चालवणारे चार तांत्रिक इंजिन"
     },
     exploreMarketplace: "बाजारपेठ पहा",
     postRequirement: "मागणी नोंदवा",

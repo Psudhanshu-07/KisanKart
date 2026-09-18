@@ -2,7 +2,7 @@
 
 **Digital Agricultural Marketplace and Procurement-Intelligence Platform**
 
-> **Official Positioning:** Farm2Market is a lightweight, explainable, multi-stakeholder orchestration layer focused on aggregating demand across buyers and coordinating supply from multiple farmers/FPOs, with farmer-first UX and actionable AI.
+> **Official Positioning:** KisanKart is a lightweight, explainable, multi-stakeholder orchestration layer focused on aggregating demand across buyers and coordinating supply from multiple farmers/FPOs, with farmer-first UX and actionable AI.
 
 ---
 
@@ -14,7 +14,7 @@ Agricultural supply chains in India suffer from severe fragmentation:
 - **Logistics Inefficiencies** cause high empty-mile costs and spoilage of perishable produce.
 - **Information Asymmetry** obscures true farmer realisations and freshness provenance.
 
-**Farm2Market** bridges this gap through four core technical engines:
+**KisanKart** bridges this gap through four core technical engines:
 1. **Smart Matching Engine**: Multi-supplier aggregation using knapsack optimization with normalized 5-factor scoring (40% Quantity, 20% Distance, 15% Price, 15% Quality, 10% Reliability = 100%).
 2. **Demand Forecasting Engine**: Converts historical patterns, seasonality, and festival surges into actionable decision cards ($\text{AI} \rightarrow \text{Recommendation} \rightarrow \text{Action}$).
 3. **Logistics & Route Optimisation Engine**: Google OR-Tools routing with vehicle capacity tracking and freshness-first sequencing.

@@ -678,7 +678,7 @@ function FarmerFPODashboardContent() {
 
                 <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 space-y-1">
                   <div className="font-bold">Shelf Life & Cold Chain Note</div>
-                  <div>Grade A Tomatoes have an estimated 5-day shelf life. Farm2Market cold fleet handles door-to-door temperature monitoring.</div>
+                  <div>Grade A Tomatoes have an estimated 5-day shelf life. KisanKart cold fleet handles door-to-door temperature monitoring.</div>
                 </div>
               </div>
             </div>
@@ -687,7 +687,7 @@ function FarmerFPODashboardContent() {
               <div className="text-xs font-semibold text-emerald-400 uppercase tracking-wider">Farmer Protection Policy</div>
               <h4 className="text-lg font-bold">100% Guaranteed Payout</h4>
               <p className="text-xs text-slate-300 leading-relaxed">
-                All procurement orders confirmed through Farm2Market are backed by escrow lock. Upon QR scan at delivery, payout is transferred directly to your registered bank account.
+                All procurement orders confirmed through KisanKart are backed by escrow lock. Upon QR scan at delivery, payout is transferred directly to your registered bank account.
               </p>
             </div>
           </div>
@@ -1105,7 +1105,7 @@ function FarmerFPODashboardContent() {
             <div className="flex items-start justify-between border-b border-slate-200 pb-4">
               <div>
                 <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-700 font-bold block">
-                  Official Farm2Market Invoice
+                  Official KisanKart Invoice
                 </span>
                 <h3 className="text-xl font-extrabold text-slate-900">{selectedInvoice.invoice_number}</h3>
               </div>
@@ -1125,7 +1125,7 @@ function FarmerFPODashboardContent() {
                 </div>
                 <div>
                   <span className="text-slate-400 block text-[10px]">ISSUED BY</span>
-                  <span className="font-bold text-slate-800">{selectedInvoice.issuer_name || "Farm2Market Direct"}</span>
+                  <span className="font-bold text-slate-800">{selectedInvoice.issuer_name || "KisanKart Direct"}</span>
                 </div>
               </div>
 

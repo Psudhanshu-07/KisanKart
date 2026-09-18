@@ -7,7 +7,7 @@ from app.schemas import DigitalLotResponse, LotEventResponse
 
 class TrustEngine:
     """
-    Trust, Transparency & Digital Lot Engine for Farm2Market.
+    Trust, Transparency & Digital Lot Engine for KisanKart.
     Calculates multi-stakeholder trust metrics, generates transparent price breakdowns,
     and provisions tamper-evident Digital Lot Passports with QR codes.
     """
