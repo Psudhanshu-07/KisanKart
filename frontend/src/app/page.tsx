@@ -35,18 +35,18 @@ export default function HomePage() {
           <div className="text-center max-w-4xl mx-auto">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs font-semibold uppercase tracking-wider mb-6 shadow-sm">
               <Sprout className="w-3.5 h-3.5 text-emerald-700" />
-              <span>Public marketplace for farmers and consumers</span>
+              <span>{t.home.badge}</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-tight mb-6">
-              Fresh produce, direct from the farm —{" "}
+              {t.home.title}{" "}
               <span className="text-emerald-700 underline decoration-emerald-300 decoration-wavy decoration-2">
                 KisanKart.
               </span>
             </h1>
 
             <p className="text-lg sm:text-xl text-slate-600 leading-relaxed mb-8">
-              KisanKart is a transparent marketplace where farmers and FPOs list fruits and vegetables, consumers buy directly, and payment is settled through farmer or FPO verified UPI/payment details without platform fees.
+              {t.home.description}
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -55,7 +55,7 @@ export default function HomePage() {
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-base shadow-lg shadow-emerald-700/20 transition transform active:scale-95"
               >
                 <ShoppingBag className="w-5 h-5" />
-                <span>Browse Produce</span>
+                <span>{t.home.browseProduce}</span>
               </Link>
 
               <Link
@@ -63,16 +63,16 @@ export default function HomePage() {
                 className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-white hover:bg-slate-50 text-slate-800 border border-slate-300 font-bold text-base shadow-sm transition"
               >
                 <Sprout className="w-5 h-5 text-emerald-600" />
-                <span>Farmer / FPO Login</span>
+                <span>{t.home.farmerLogin}</span>
               </Link>
             </div>
 
             <div className="mt-12 pt-8 border-t border-slate-200/80 text-left">
               <div className="rounded-3xl border border-dashed border-emerald-300 bg-white p-8 text-center">
-                <div className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700 mb-3">Marketplace status</div>
-                <h2 className="text-3xl font-black text-slate-900 mb-2">No products listed yet</h2>
+                <div className="text-xs font-bold uppercase tracking-[0.2em] text-emerald-700 mb-3">{t.home.marketplaceStatus}</div>
+                <h2 className="text-3xl font-black text-slate-900 mb-2">{t.home.emptyTitle}</h2>
                 <p className="text-slate-600 max-w-2xl mx-auto">
-                  The marketplace is intentionally empty at launch so farmers and FPOs can list fresh produce as soon as they are ready. Consumers will see live stock only when sellers add listings.
+                  {t.home.emptyDescription}
                 </p>
               </div>
             </div>
@@ -83,10 +83,10 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-10">
           <h2 className="text-xs font-bold text-orange-700 tracking-wider uppercase mb-2">
-            Built for trust
+            {t.home.builtForTrust}
           </h2>
           <p className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-            Simple experiences for farmers and buyers
+            {t.home.simpleExperiences}
           </p>
         </div>
 
@@ -96,9 +96,9 @@ export default function HomePage() {
               <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-800 flex items-center justify-center">
                 <Sprout className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900">Farmer / FPO account</h3>
+              <h3 className="text-xl font-bold text-slate-900">{t.home.farmerAccount}</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Create a trusted seller profile, add payment details like UPI or bank account, list produce with transparent pricing, and receive direct payments without platform fees.
+                {t.home.farmerDescription}
               </p>
               <ul className="text-xs text-slate-700 space-y-2 pt-2 border-t border-slate-100">
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-orange-600 shrink-0" /> <span>Seller profile and address setup</span></li>
@@ -109,7 +109,7 @@ export default function HomePage() {
 
             <div className="pt-6">
               <Link href="/register" className="w-full py-2.5 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition">
-                <span>Create Farmer Account</span>
+                <span>{t.home.createFarmer}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -120,9 +120,9 @@ export default function HomePage() {
               <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-800 flex items-center justify-center">
                 <ShoppingBag className="w-6 h-6" />
               </div>
-              <h3 className="text-xl font-bold text-slate-900">Buyer account</h3>
+              <h3 className="text-xl font-bold text-slate-900">{t.home.buyerAccount}</h3>
               <p className="text-xs text-slate-600 leading-relaxed">
-                Shoppers can sign in with their own details, add delivery address, place orders, and pay for products using direct payment instructions from verified sellers.
+                {t.home.buyerDescription}
               </p>
               <ul className="text-xs text-slate-700 space-y-2 pt-2 border-t border-slate-100">
                 <li className="flex items-center gap-2"><CheckCircle2 className="w-4 h-4 text-orange-600 shrink-0" /> <span>Simple sign in and secure checkout</span></li>
@@ -133,7 +133,7 @@ export default function HomePage() {
 
             <div className="pt-6">
               <Link href="/shop" className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition">
-                <span>Browse Consumer Shop</span>
+                <span>{t.home.browseShop}</span>
                 <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
@@ -145,10 +145,10 @@ export default function HomePage() {
       <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <h2 className="text-xs font-bold text-emerald-700 tracking-wider uppercase mb-2">
-            System Core
+            {t.home.systemCore}
           </h2>
           <p className="text-2xl sm:text-3xl font-extrabold text-slate-900">
-            The Four Technical Engines Powering Farm2Market
+            {t.home.enginesTitle}
           </p>
         </div>
 

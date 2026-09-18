@@ -148,9 +148,6 @@ export function Navbar() {
               <span className="text-xl font-extrabold tracking-tight text-slate-900 block leading-none">
                 Kisan<span className="text-orange-600">Kart</span>
               </span>
-              <span className="text-[10px] text-slate-500 tracking-wider uppercase font-semibold">
-                Fresh market network
-              </span>
             </div>
           </Link>
 
