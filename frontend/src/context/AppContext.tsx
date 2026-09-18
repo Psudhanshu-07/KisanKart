@@ -58,7 +58,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [role, setRoleState] = useState<Role>("buyer");
   const [currentUser, setCurrentUserState] = useState<UserSession | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [language, setLanguage] = useState<Language>("en");
+  const [language, setLanguageState] = useState<Language>("en");
   const [dataSaver, setDataSaver] = useState<boolean>(false);
   const [isOnline, setIsOnline] = useState<boolean>(true);
   const [isDemoMode] = useState<boolean>(false);
@@ -67,6 +67,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   // Initialize from localStorage
   useEffect(() => {
     if (typeof window !== "undefined") {
+      document.documentElement.lang = language;
       const storedUser = localStorage.getItem("f2m_user");
       if (storedUser) {
         try {
@@ -76,6 +77,10 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         } catch (e) {
           console.error("Error parsing stored user", e);
         }
+      }
+      const storedLanguage = localStorage.getItem("f2m_language") as Language | null;
+      if (storedLanguage && storedLanguage in translations) {
+        setLanguageState(storedLanguage);
       }
       const storedCart = localStorage.getItem("f2m_cart");
       if (storedCart) {
@@ -87,6 +92,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       }
     }
   }, []);
+
+  useEffect(() => {
+    document.documentElement.lang = language;
+  }, [language]);
+
+  const setLanguage = (newLanguage: Language) => {
+    setLanguageState(newLanguage);
+    if (typeof window !== "undefined") {
+      localStorage.setItem("f2m_language", newLanguage);
+    }
+  };
 
   const setRole = (newRole: Role) => {
     setRoleState(newRole);

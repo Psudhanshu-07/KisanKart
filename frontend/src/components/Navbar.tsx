@@ -50,11 +50,11 @@ export function Navbar() {
   const getNavLinks = () => {
     const baseLinks = [];
 
-    baseLinks.push({ href: "/shop", label: "Shop Produce" });
-    baseLinks.push({ href: "/buyer/requirement", label: "+ Post Bulk Requirement", highlight: true });
+    baseLinks.push({ href: "/shop", label: t.nav.marketplace });
+    baseLinks.push({ href: "/buyer/requirement", label: `+ ${t.postRequirement}`, highlight: true });
 
     if (activeRole === "farmer" || activeRole === "fpo") {
-      baseLinks.unshift({ href: "/farmer/dashboard", label: "Farmer Portal", primary: true });
+      baseLinks.unshift({ href: "/farmer/dashboard", label: t.nav.farmerPortal, primary: true });
     }
 
     return baseLinks;
@@ -81,14 +81,14 @@ export function Navbar() {
           <div className="flex items-center gap-1.5 text-orange-50">
             {currentUser ? (
               <span className="inline-flex items-center gap-1">
-                <span className="text-orange-100">Signed in as:</span>
+                <span className="text-orange-100">{language === "en" ? "Signed in as:" : language === "hi" ? "लॉग इन:" : "लॉग इन:"}</span>
                 <span className="font-bold text-white">{currentUser.full_name}</span>
                 <span className="px-1.5 py-0.2 bg-orange-600/30 text-white rounded text-[10px] uppercase font-mono">
                   {currentUser.role}
                 </span>
               </span>
             ) : (
-              <span className="text-orange-100">Guest Visitor</span>
+              <span className="text-orange-100">{language === "en" ? "Guest Visitor" : language === "hi" ? "अतिथि" : "अतिथी"}</span>
             )}
           </div>
         </div>
@@ -103,18 +103,18 @@ export function Navbar() {
             title="Compresses media and pauses heavy sync for rural bandwidth"
           >
             <SlidersHorizontal className="w-3 h-3" />
-            <span className="hidden md:inline">Data Saver</span>: {dataSaver ? "ON" : "OFF"}
+            <span className="hidden md:inline">{t.dataSaver}</span>: {dataSaver ? "ON" : "OFF"}
           </button>
 
           {/* Network State */}
           <span className="flex items-center gap-1 text-xs">
             {isOnline ? (
-              <span className="text-white flex items-center gap-1">
-                <Wifi className="w-3 h-3" /> Online
+                <span className="text-white flex items-center gap-1">
+                <Wifi className="w-3 h-3" /> {language === "en" ? "Online" : language === "hi" ? "ऑनलाइन" : "ऑनलाइन"}
               </span>
             ) : (
               <span className="text-yellow-100 flex items-center gap-1 font-bold">
-                <WifiOff className="w-3 h-3" /> Offline (Sync Active)
+                <WifiOff className="w-3 h-3" /> {language === "en" ? "Offline (Sync Active)" : language === "hi" ? "ऑफलाइन (सिंक सक्रिय)" : "ऑफलाइन (सिंक सक्रिय)"}
               </span>
             )}
           </span>
@@ -201,7 +201,7 @@ export function Navbar() {
                   className="px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold flex items-center gap-1.5 transition"
                 >
                   <LogOut className="w-3.5 h-3.5 text-slate-500" />
-                  <span>Sign Out</span>
+                  <span>{language === "en" ? "Sign Out" : language === "hi" ? "लॉग आउट" : "लॉग आउट"}</span>
                 </button>
               </div>
             ) : (
@@ -211,7 +211,7 @@ export function Navbar() {
                   className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-sm transition"
                 >
                   <LogIn className="w-3.5 h-3.5" />
-                  <span>Sign In</span>
+                  <span>{language === "en" ? "Sign In" : language === "hi" ? "लॉग इन" : "लॉग इन"}</span>
                 </Link>
               </div>
             )}
