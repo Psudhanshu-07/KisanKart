@@ -1,0 +1,22 @@
+{
+  "name": "Farm2Market",
+  "short_name": "Farm2Market",
+  "description": "Digital Agricultural Marketplace & Procurement-Intelligence Platform",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#15803d",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+

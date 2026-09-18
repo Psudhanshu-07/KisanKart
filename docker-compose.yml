@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: f2m_backend
+    environment:
+      - DATABASE_URL=postgresql://f2m_user:f2m_pass@db:5432/farm2market
+      - SECRET_KEY=farm2market-sih-2026-production-ready-secret
+      - DEMO_MODE=True
+      - SUPABASE_URL=https://optghlauklftecyjowqa.supabase.co
+      - SUPABASE_PUBLISHABLE_KEY=sb_publishable_t2vDCNHb3ubXlJ6Ct2ZqZg_-6BfgA2y
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: f2m_frontend
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+      - NEXT_PUBLIC_SUPABASE_URL=https://optghlauklftecyjowqa.supabase.co
+      - NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_t2vDCNHb3ubXlJ6Ct2ZqZg_-6BfgA2y
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    container_name: f2m_postgres
+    environment:
+      POSTGRES_USER: f2m_user
+      POSTGRES_PASSWORD: f2m_pass
+      POSTGRES_DB: farm2market
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: f2m_redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
