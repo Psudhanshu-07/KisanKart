@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func
 from app.database import get_db
 from app.models import User, FarmerProfile, FPOProfile, BuyerProfile, DriverProfile
 from app.schemas import UserRegister, UserLogin, TokenResponse, UserResponse
@@ -82,11 +83,16 @@ def register(req: UserRegister, db: Session = Depends(get_db)):
 
 @router.post("/login", response_model=TokenResponse)
 def login(req: UserLogin, db: Session = Depends(get_db)):
-    lookup_email = req.email.lower().strip()
-    user = db.query(User).filter(User.email == lookup_email).first()
+    lookup_email = (req.email or "").strip().lower()
+    user = db.query(User).filter(func.lower(func.trim(User.email)) == lookup_email).first()
+    if not user:
+        user = db.query(User).filter(User.email.ilike(lookup_email)).first()
 
     if not user or not verify_password(req.password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
+
+    if not user.is_active:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Account is deactivated")
 
     token = create_access_token({"sub": str(user.id), "role": user.role, "email": user.email})
     return TokenResponse(
@@ -94,7 +100,7 @@ def login(req: UserLogin, db: Session = Depends(get_db)):
         role=user.role,
         user_id=user.id,
         full_name=user.full_name,
-        email=req.email  # preserve the user's requested alias
+        email=user.email
     )
 
 @router.get("/me", response_model=UserResponse)

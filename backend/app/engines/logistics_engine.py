@@ -109,4 +109,11 @@ class LogisticsOptimisationEngine:
         route_data["delay_minutes"] = delay_minutes
         route_data["delay_reason"] = delay_reason
         route_data["status"] = "DELAYED"
+        if "eta_text" in route_data:
+            try:
+                dt = datetime.datetime.strptime(route_data["eta_text"], "%Y-%m-%d %H:%M")
+                new_dt = dt + datetime.timedelta(minutes=delay_minutes)
+                route_data["eta_text"] = new_dt.strftime("%Y-%m-%d %H:%M")
+            except Exception:
+                pass
         return route_data

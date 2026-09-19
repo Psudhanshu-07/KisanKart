@@ -1,16 +1,29 @@
-const getApiBase = () => {
-  let base = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:8000/api";
-  base = base.trim().replace(/\/+$/, "");
-  if (!base.endsWith("/api")) {
-    base = `${base}/api`;
+export const getApiBase = () => {
+  if (process.env.NEXT_PUBLIC_API_URL) {
+    let base = process.env.NEXT_PUBLIC_API_URL.trim().replace(/\/+$/, "");
+    if (!base.endsWith("/api")) {
+      base = `${base}/api`;
+    }
+    return base;
   }
-  return base;
+  if (typeof window !== "undefined") {
+    const hostname = window.location.hostname;
+    if (hostname === "localhost" || hostname === "127.0.0.1") {
+      return "http://127.0.0.1:8000/api";
+    }
+    // Remote deployment (Vercel, Render)
+    return "/api";
+  }
+  return process.env.NODE_ENV === "production"
+    ? "https://farm2market-api.onrender.com/api"
+    : "http://127.0.0.1:8000/api";
 };
 
-const API_BASE = getApiBase();
-
 export async function fetchFromApi(endpoint: string, options: RequestInit = {}) {
-  const url = `${API_BASE}${endpoint.startsWith("/") ? endpoint : `/${endpoint}`}`;
+  const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+  const base = getApiBase();
+  const url = `${base}${cleanEndpoint}`;
+
   try {
     const token = typeof window !== "undefined" ? JSON.parse(localStorage.getItem("f2m_user") || "null")?.access_token : null;
     const res = await fetch(url, {
@@ -28,6 +41,28 @@ export async function fetchFromApi(endpoint: string, options: RequestInit = {}) 
     return await res.json();
   } catch (error: any) {
     console.warn(`API call to ${url} failed, checking fallback:`, error.message);
+
+    // In production, if relative /api fails, try direct Render backend fallback
+    if (typeof window !== "undefined" && !url.includes("onrender.com") && window.location.hostname !== "localhost" && window.location.hostname !== "127.0.0.1") {
+      const fallbackUrl = `https://farm2market-api.onrender.com/api${cleanEndpoint}`;
+      try {
+        const token = JSON.parse(localStorage.getItem("f2m_user") || "null")?.access_token;
+        const res2 = await fetch(fallbackUrl, {
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+            ...(options.headers || {})
+          },
+          ...options
+        });
+        if (res2.ok) {
+          return await res2.json();
+        }
+      } catch (fallbackError) {
+        console.warn(`Fallback to ${fallbackUrl} also failed:`, fallbackError);
+      }
+    }
+
     throw error;
   }
 }

@@ -1,133 +1,197 @@
-# KisanKart (SIH 2026 Working Prototype)
+# KisanKart 🌾🛒
 
-**Digital Agricultural Marketplace and Procurement-Intelligence Platform**
+**Empowering Indian Agriculture through Direct Farmer-to-Consumer Digital Trade & Intelligent Supply Chain Orchestration**
 
-> **Official Positioning:** KisanKart is a lightweight, explainable, multi-stakeholder orchestration layer focused on aggregating demand across buyers and coordinating supply from multiple farmers/FPOs, with farmer-first UX and actionable AI.
-
----
-
-## 1. Project Overview & Problem Statement
-
-Agricultural supply chains in India suffer from severe fragmentation:
-- **Smallholder Farmers & FPOs** lack transparent, direct access to bulk buyers and are vulnerable to commission exploitation.
-- **Bulk Buyers** (hotels, restaurants, canteens, hostels) struggle to procure predictable volume, consistent quality, and strict delivery windows from single farmers.
-- **Logistics Inefficiencies** cause high empty-mile costs and spoilage of perishable produce.
-- **Information Asymmetry** obscures true farmer realisations and freshness provenance.
-
-**KisanKart** bridges this gap through four core technical engines:
-1. **Smart Matching Engine**: Multi-supplier aggregation using knapsack optimization with normalized 5-factor scoring (40% Quantity, 20% Distance, 15% Price, 15% Quality, 10% Reliability = 100%).
-2. **Demand Forecasting Engine**: Converts historical patterns, seasonality, and festival surges into actionable decision cards ($\text{AI} \rightarrow \text{Recommendation} \rightarrow \text{Action}$).
-3. **Logistics & Route Optimisation Engine**: Google OR-Tools routing with vehicle capacity tracking and freshness-first sequencing.
-4. **Trust + Transparency Engine**: Multi-factor trust scores (94/100), tamper-evident Digital Lot Passports with scannable QR codes, and transparent ₹/kg price breakdowns.
+> **Smart India Hackathon (SIH 2026) Working Prototype**  
+> *A production-grade, explainable, multi-stakeholder platform connecting Farmers, FPOs, Consumers, Bulk Buyers, and Operations Administrators.*
 
 ---
 
-## 2. Tech Stack
+## 🌟 Executive Summary
 
-- **Frontend**: Next.js 15+ (App Router), React 19, TypeScript, Tailwind CSS, Lucide Icons, Recharts, Canvas-Confetti, PWA support, Web Speech API.
-- **Backend**: Python 3.10+, FastAPI, Pydantic v2, SQLAlchemy 2.0, Uvicorn, Bcrypt, PyJWT.
-- **AI / Optimisation**: Google OR-Tools (Capacitated Vehicle Routing Problem), Scikit-learn, Pandas, NumPy.
-- **Database**: SQLite (local zero-setup development fallback) / PostgreSQL 16 (production ready).
-- **Traceability**: Python `qrcode` library with base64 embedded QR generation.
+Traditional agricultural supply chains in India suffer from acute structural fragmentation, opaque middleman commissions, and high logistics spoilage:
+- **Smallholder Farmers & FPOs** frequently receive below-MSP realisations, lack direct market access, and face high commission markups.
+- **Consumers & Institutional Buyers** (restaurants, hotels, canteens) face volatile pricing, inconsistent quality, and delayed delivery windows.
+- **Logistics & Aggregation** are plagued by empty-return trips and lack of route optimization for perishable commodities.
 
----
-
-## 3. Seeded Demo Accounts (Maharashtra Corridor)
-
-| Role | Email | Password | Details |
-| :--- | :--- | :--- | :--- |
-| **Farmer** | `farmer@farm2market.in` | `farmer123` | Ramesh Patil (Pimpalgaon, Nashik) • KYC Verified |
-| **FPO** | `fpo@farm2market.in` | `fpo123` | Sahyadri Farmers Producer Co. (350 members) |
-| **Buyer** | `buyer@farm2market.in` | `buyer123` | Taj Green & Grand Hotels Procurement (Mumbai) |
-| **Driver** | `driver@farm2market.in` | `driver123` | Suresh Gaikwad (Tata Ace 1.2T • MH 15 EF 9021) |
-| **Admin** | `admin@farm2market.in` | `admin123` | Maharashtra Agri-Market Intelligence Directorate |
+**KisanKart** solves these challenges by combining a farmer-first multilingual interface, direct consumer e-commerce, algorithmic multi-stop logistics routing, and transparent real-time price discovery.
 
 ---
 
-## 4. Quick Start Guide
+## 🏛️ System Architecture: Three Dedicated Portals
 
-### Prerequisites
-- Python 3.10+
-- Node.js 18+ and npm
+KisanKart segregates platform workflows into three tailored experiences:
 
-### A. Backend Setup
+```
+                               ┌──────────────────────────────────────────────┐
+                               │           KisanKart Gateway                  │
+                               └──────────────────────┬───────────────────────┘
+                                                      │
+             ┌────────────────────────────────────────┼────────────────────────────────────────┐
+             ▼                                        ▼                                        ▼
+┌─────────────────────────┐              ┌─────────────────────────┐              ┌─────────────────────────┐
+│     Farmer / FPO        │              │    Consumer / Buyer     │              │    Operations & Admin   │
+│        Portal           │              │       E-Commerce        │              │         Center          │
+├─────────────────────────┤              ├─────────────────────────┤              ├─────────────────────────┤
+│ • Produce Lot Listings  │              │ • Live Fresh Produce    │              │ • Dynamic Pricing Rules │
+│ • AI Voice-to-Listing   │              │ • Direct Farm-to-Fork   │              │ • Regional Demand AI    │
+│ • MSP & Price Breakdown │              │ • Cost Breakdown (₹/kg) │              │ • OR-Tools Fleet Routing│
+│ • FPO Collective Buffer │              │ • QR Digital Lot Passes │              │ • Driver Dispatch & Map │
+│ • Direct UPI Earnings   │              │ • Bulk Demand Pooling   │              │ • Audit & Governance    │
+└─────────────────────────┘              └─────────────────────────┘              └─────────────────────────┘
+```
+
+### 1. 🌾 Farmer / FPO Portal (`/farmer/dashboard`)
+- **Farmer-First UX**: Voice-assisted listing in English, Hindi, and Marathi (via Web Speech API) allowing rural farmers to list crops hands-free.
+- **Transparent Price Discovery**: Instant visualization of farmer gross payout, platform processing fee (2%), and logistics costs.
+- **FPO Collective Hub**: Allows Farmer Producer Organizations to aggregate volume from hundreds of marginal farmers into commercial-grade lots.
+- **Direct UPI Payout Tracking**: Live tracking of direct bank settlements without third-party commission deductions.
+
+### 2. 🛒 Consumer / Buyer E-Commerce Portal (`/shop`, `/shop/cart`, `/buyer/requirement`)
+- **Direct Farm Fresh Marketplace**: Consumers browse verified crop listings direct from local farmers and FPOs.
+- **Traceability & Provenance**: Every item is backed by a **Digital Lot Passport** (`LOT-CROP-YYYYMMDD-XXXXX`) with a tamper-evident QR code showing farm origin, harvest date, grade, and shelf-life.
+- **Bulk Institutional Procurement**: Hotels and hostels can post multi-ton requirements and instantly receive optimized multi-farmer aggregation plans.
+- **Offline Resilience & Data-Saver**: Built-in PWA offline caching and low-bandwidth image compression modes for rural connectivity.
+
+### 3. 🛡️ Private Admin & Operations Center (`/admin/dashboard`, `/admin/login`)
+- **Operations Console**: Secure role-based management for platform operators, logistics coordinators, and evaluators.
+- **Dynamic Pricing Engine**: Automated ceiling/floor rules, perishable shelf-life discounts, and surge pricing controls.
+- **AI Demand Forecasting**: Machine learning models predicting regional demand spikes (festivals, wedding seasons) and translating them into actionable decision cards.
+- **Google OR-Tools Logistics**: Multi-stop Capacitated Vehicle Routing Problem (CVRP) optimizer with vehicle capacity meters and delay notifications.
+- **Immutable Audit Trail**: Chronological event logs for price rule modifications, dispatch assignments, and KYC approvals.
+
+---
+
+## ⚙️ The Four Core Technical Engines
+
+### A. Multi-Supplier Smart Matching Engine
+- Utilizes knapsack-based combinatorial optimization to aggregate supply across multiple smallholder farmers to fulfill large bulk orders.
+- Evaluates listings across a normalized 5-factor scoring model:
+  $$\text{Score} = (0.40 \times \text{Quantity}) + (0.20 \times \text{Distance}) + (0.15 \times \text{Price}) + (0.15 \times \text{Quality}) + (0.10 \times \text{Reliability})$$
+- Features an **Explainable AI** popup explaining the exact mathematical score to buyers.
+
+### B. AI Demand Forecasting Engine
+- Combines historical purchase records, commodity price trajectories, and upcoming festival spikes (e.g. Ganesh Chaturthi, Diwali).
+- Generates actionable decision cards: $\text{Forecast} \rightarrow \text{Recommendation} \rightarrow \text{One-Click Action}$ (e.g., dispatching FPO buffer stock to alleviate a 1,300 kg tomato deficit in Mumbai).
+
+### C. Logistics & Route Optimisation Engine
+- Powered by **Google OR-Tools** solving the Capacitated Vehicle Routing Problem (CVRP) with Freshness-First constraints.
+- Coordinates multi-point farmer pickups, live vehicle load tracking (e.g., 700 / 1000 kg), and dynamic delay recalculations.
+
+### D. Trust & Traceability Engine
+- Digital Lot Passports encoded with scannable QR codes containing cryptographic harvest and quality data.
+- 100% transparent fee breakdowns: Base Farmer Rate + Logistics Transport + 2% Platform Maintenance.
+
+---
+
+## 💻 Tech Stack
+
+| Layer | Technologies |
+| :--- | :--- |
+| **Frontend** | **Next.js 15+** (App Router), **React 19**, **TypeScript**, **Tailwind CSS**, **Lucide Icons**, **Recharts**, **Web Speech API**, **PWA / Service Workers** |
+| **Backend** | **FastAPI** (Python 3.10+), **Pydantic v2**, **SQLAlchemy 2.0**, **Uvicorn**, **Bcrypt**, **PyJWT** |
+| **Database** | **PostgreSQL 16** (Supabase Cloud Database with Connection Pooling) • SQLite (Local dev fallback) |
+| **AI / Operations** | **Google OR-Tools** (Routing), **NumPy**, **Pandas**, **Scikit-learn** |
+| **Deployment** | **Vercel** (Frontend CI/CD) • **Render** (Backend Web Service) • **GitHub Actions** |
+
+---
+
+## 🚀 Getting Started (Local Development)
+
+### 1. Prerequisites
+- **Node.js**: v18.0.0 or higher
+- **Python**: v3.10 or higher
+- **Git**
+
+### 2. Clone the Repository
+```bash
+git clone https://github.com/Psudhanshu-07/KisanKart.git
+cd KisanKart
+```
+
+### 3. Backend Setup
 ```bash
 cd backend
-python -m pip install -r requirements.txt
-python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
-```
-*API will be available at `http://127.0.0.1:8000` with Swagger documentation at `http://127.0.0.1:8000/docs`.*
+python -m venv venv
 
-### B. Frontend Setup
+# Windows
+.\venv\Scripts\activate
+# Linux/macOS
+source venv/bin/activate
+
+pip install -r requirements.txt
+uvicorn app.main:app --host 127.0.0.1 --port 8000 --reload
+```
+- The interactive API documentation will be available at: `http://127.0.0.1:8000/docs`
+- Health check endpoint: `http://127.0.0.1:8000/health`
+
+### 4. Frontend Setup
 ```bash
-cd frontend
+cd ../frontend
 npm install
 npm run dev
 ```
-*Frontend will run at `http://localhost:3000`.*
+- Open `http://localhost:3000` in your browser.
 
-### C. Run Backend Tests
+---
+
+## 👥 Team & Admin Management
+
+KisanKart supports dedicated admin accounts for evaluation and platform administration.
+
+### Creating an Admin Account
+To create or update an administrator account, run the CLI utility in the backend directory:
 ```bash
-python -m pytest tests/test_engines.py -v -o pythonpath=backend
+cd backend
+python create_admin.py
+```
+Follow the prompts to enter:
+1. **Admin Email** (e.g., `your.email@gmail.com`)
+2. **Admin Name**
+3. **Password**
+
+### Logging In
+Platform users and team members can sign in through two streamlined entry points:
+1. **Unified Login (`/login`)**: Select **Farmer/FPO**, **Consumer**, or **Admin/Team**. Entering valid admin credentials automatically authenticates and routes you straight to `/admin/dashboard`.
+2. **Private Admin Console (`/admin/login`)**: A dedicated high-security dark console for platform operations.
+
+---
+
+## 🌐 Production Deployment
+
+### Deploying Frontend to Vercel
+1. Import the repository on [Vercel](https://vercel.com).
+2. Set the Root Directory to `frontend`.
+3. Add the following Environment Variable:
+   - `NEXT_PUBLIC_API_URL`: Your deployed Render backend URL (e.g., `https://farm2market-api.onrender.com`).
+4. Click **Deploy**.
+
+### Deploying Backend to Render
+1. Connect your GitHub repository to [Render](https://render.com).
+2. Create a new **Web Service** with the Root Directory set to `backend`.
+3. Configure the build and start commands:
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+4. Add Environment Variables:
+   - `DATABASE_URL`: Your Supabase PostgreSQL connection string.
+   - `SECRET_KEY`: A secure 32+ character random string.
+   - `PYTHON_VERSION`: `3.10.12`
+
+Alternatively, deploy using the included Blueprint: `render.yaml`.
+
+---
+
+## 🧪 Testing
+
+Run backend engine tests and routing benchmarks:
+```bash
+cd backend
+pytest tests/ -v
 ```
 
 ---
 
-## 5. Demonstration Walkthrough (SIH Judges)
+## 📄 License & Acknowledgements
 
-Please consult `docs/demo-flow.md` for the exact 5–7 minute live walkthrough:
-1. **Post Requirement (Buyer)**: Request 1,000 kg Grade-A Tomato in Mumbai.
-2. **Observe Smart Supply Plan**: 3 suppliers aggregated (400 kg FPO + 350 kg Farmer B + 250 kg Farmer C).
-3. **Explainable Matching**: Click *"Why 94%?"* to inspect the 5-factor subscores.
-4. **Confirm Order & QR Code**: Generate Digital Lot Passport `LOT-TOM-NK-2609-00421`.
-5. **Driver Console**: Inspect vehicle capacity (700/1000 kg), start route, and broadcast an 18-minute delay alert.
-6. **Farmer Voice Listing**: Speak in Hindi/Marathi to automatically populate crop and inferred shelf life.
-7. **Government Intelligence**: Inspect the Mumbai 1,300 kg deficit card and dispatch FPO buffer stock.
-
----
-
-## 6. Directory Structure
-
-```
-Farmers/
-├── backend/
-│   ├── app/
-│   │   ├── engines/           # Core engines (Matching, Forecasting, Logistics, Trust)
-│   │   ├── routers/           # FastAPI REST API endpoints
-│   │   ├── auth.py            # JWT and bcrypt security
-│   │   ├── config.py          # App settings
-│   │   ├── database.py        # SQLAlchemy engine and session
-│   │   ├── models.py          # Relational ORM models
-│   │   ├── schemas.py         # Pydantic schemas
-│   │   └── seed_data.py       # Maharashtra demo data seeder
-│   ├── main.py                # FastAPI app entrypoint
-│   └── requirements.txt       # Python dependencies
-├── frontend/
-│   ├── src/
-│   │   ├── app/               # Next.js App Router pages
-│   │   │   ├── admin/         # Government Intelligence Dashboard
-│   │   │   ├── buyer/         # Procurement Requirement & Plan Generator
-│   │   │   ├── driver/        # Logistics & Vehicle Capacity Console
-│   │   │   ├── farmer/        # Farmer-First UX (Sell, Orders, Earnings, Demand)
-│   │   │   ├── fpo/           # FPO Hub & Demand Pool Aggregation
-│   │   │   ├── lot/[id]/      # Digital Lot QR Produce Passport
-│   │   │   └── marketplace/   # Real-time Filtered Produce Marketplace
-│   │   ├── components/        # Shared UI (Navbar, Footer)
-│   │   ├── context/           # AppContext (Roles, Languages, Offline Sync)
-│   │   └── lib/               # API client, translations (EN/HI/MR), offline storage
-│   └── package.json
-├── docs/
-│   ├── technical-architecture.md
-│   └── demo-flow.md
-├── tests/
-│   └── test_engines.py        # Automated test suite
-└── docker-compose.yml
-```
-
----
-
-## 7. Known Limitations & Future Integrations
-
-- **External Integrations**: SMS gateway, WhatsApp alerts, and payment gateways are cleanly abstracted via interface adapters for this prototype.
-- **Traffic Feeds**: Simulated delay events model live highway congestion between Nashik and Mumbai corridors.
-
+Developed for **Smart India Hackathon (SIH 2026)**.  
+Designed to support the Digital Agriculture Mission and empower rural farming communities across India.

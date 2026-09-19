@@ -55,6 +55,8 @@ export function Navbar() {
 
     if (activeRole === "farmer" || activeRole === "fpo") {
       baseLinks.unshift({ href: "/farmer/dashboard", label: t.nav.farmerPortal, primary: true });
+    } else if (activeRole === "admin") {
+      baseLinks.unshift({ href: "/admin/dashboard", label: "Admin Operations", primary: true });
     }
 
     return baseLinks;
