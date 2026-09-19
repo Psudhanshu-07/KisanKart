@@ -21,7 +21,13 @@ export const getApiBase = () => {
 
 export async function fetchFromApi(endpoint: string, options: RequestInit = {}) {
   const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
-  const base = getApiBase();
+  let base = getApiBase();
+
+  // In browser, ensure /auth/login uses Next.js native API route directly for instant Supabase verification
+  if (typeof window !== "undefined" && cleanEndpoint.startsWith("/auth/login")) {
+    base = "/api";
+  }
+
   const url = `${base}${cleanEndpoint}`;
 
   try {
