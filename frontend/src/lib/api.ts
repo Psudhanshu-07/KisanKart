@@ -23,11 +23,12 @@ export async function fetchFromApi(endpoint: string, options: RequestInit = {}) 
   const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   let base = getApiBase();
 
-  // In browser, ensure /auth/login, /auth/register, and /produce use Next.js native API routes directly for instant Supabase verification
+  // In browser, ensure /auth/login, /auth/register, /produce, and /admin use Next.js native API routes directly for instant Supabase verification
   if (
     typeof window !== "undefined" &&
     (cleanEndpoint.startsWith("/auth/login") ||
       cleanEndpoint.startsWith("/auth/register") ||
+      cleanEndpoint.startsWith("/admin") ||
       cleanEndpoint === "/produce" ||
       cleanEndpoint.startsWith("/produce?"))
   ) {
@@ -170,6 +171,14 @@ export async function getDecisionCards(role: string, region: string = "Mumbai") 
 
 export async function getAdminDashboard() {
   return fetchFromApi("/admin/dashboard");
+}
+
+export async function getAdminFarmers() {
+  return fetchFromApi("/admin/farmers");
+}
+
+export async function getAdminProduce() {
+  return fetchFromApi("/admin/produce");
 }
 
 export async function getAdminDrivers() {

@@ -332,6 +332,8 @@ class AdminDashboardStats(BaseModel):
     demand_analysis: List[Dict[str, Any]] = []
     route_records: List[Dict[str, Any]] = []
     order_records: List[Dict[str, Any]] = []
+    farmers_list: List[Dict[str, Any]] = []
+    produce_listings: List[Dict[str, Any]] = []
 
 
 # --- Pricing Engine Schemas ---

@@ -37,7 +37,13 @@ import {
   Layers,
   ArrowUpRight,
   ArrowDownRight,
-  Info
+  Info,
+  Filter,
+  Tag,
+  Phone,
+  Mail,
+  ShoppingBag,
+  Eye
 } from "lucide-react";
 
 export default function PrivateAdminDashboardPage() {
@@ -50,7 +56,7 @@ export default function PrivateAdminDashboardPage() {
 
 function AdminDashboardContent() {
   const { currentUser } = useApp();
-  const [activeTab, setActiveTab] = useState<"overview" | "pricing" | "demand" | "logistics" | "audit">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "farmers" | "produce" | "pricing" | "demand" | "logistics" | "audit">("overview");
 
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -61,6 +67,11 @@ function AdminDashboardContent() {
   const [selectedDriver, setSelectedDriver] = useState<Record<number, number>>({});
   const [routeMessage, setRouteMessage] = useState("");
   const [loading, setLoading] = useState(true);
+
+  // Search & Filters for Farmers & Produce Directories
+  const [farmerSearchQuery, setFarmerSearchQuery] = useState("");
+  const [produceSearchQuery, setProduceSearchQuery] = useState("");
+  const [produceStatusFilter, setProduceStatusFilter] = useState("ALL");
 
   // Price Editing Modal / Form State
   const [editingRule, setEditingRule] = useState<any>(null);
@@ -159,6 +170,36 @@ function AdminDashboardContent() {
     setTimeout(() => setFpoNotified(false), 4000);
   };
 
+  // Filter Farmers
+  const filteredFarmers = (dashboardData?.farmers_list || []).filter((f: any) => {
+    if (!farmerSearchQuery) return true;
+    const q = farmerSearchQuery.toLowerCase();
+    return (
+      (f.full_name && f.full_name.toLowerCase().includes(q)) ||
+      (f.email && f.email.toLowerCase().includes(q)) ||
+      (f.phone && f.phone.toLowerCase().includes(q)) ||
+      (f.farm_name && f.farm_name.toLowerCase().includes(q)) ||
+      (f.district && f.district.toLowerCase().includes(q)) ||
+      (f.upi_id && f.upi_id.toLowerCase().includes(q))
+    );
+  });
+
+  // Filter Produce
+  const filteredProduce = (dashboardData?.produce_listings || []).filter((item: any) => {
+    if (produceStatusFilter !== "ALL" && item.status !== produceStatusFilter) {
+      return false;
+    }
+    if (!produceSearchQuery) return true;
+    const q = produceSearchQuery.toLowerCase();
+    return (
+      (item.produce_name && item.produce_name.toLowerCase().includes(q)) ||
+      (item.farmer_name && item.farmer_name.toLowerCase().includes(q)) ||
+      (item.district && item.district.toLowerCase().includes(q)) ||
+      (item.grade && item.grade.toLowerCase().includes(q)) ||
+      (item.category && item.category.toLowerCase().includes(q))
+    );
+  });
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
       {/* Top Admin Header */}
@@ -192,11 +233,13 @@ function AdminDashboardContent() {
         <div className="flex items-center gap-2 overflow-x-auto pt-6 border-t border-slate-800 mt-6 scrollbar-none">
           {[
             { id: "overview", label: "Operations Overview", icon: BarChart3 },
+            { id: "farmers", label: "Farmers & Producers", icon: Sprout, count: dashboardData?.total_farmers },
+            { id: "produce", label: "Listed Products & Pricing", icon: Layers, count: dashboardData?.active_listings },
             { id: "pricing", label: "Price Management Engine", icon: DollarSign },
             { id: "demand", label: "Demand Intelligence", icon: TrendingUp },
             { id: "logistics", label: "Cold Fleet Monitor", icon: Truck },
             { id: "audit", label: "Cryptographic Audit Logs", icon: Lock }
-          ].map((tab) => {
+          ].map((tab: any) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
             return (
@@ -211,6 +254,15 @@ function AdminDashboardContent() {
               >
                 <Icon className="w-3.5 h-3.5" />
                 <span>{tab.label}</span>
+                {tab.count !== undefined && (
+                  <span
+                    className={`ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-black ${
+                      isActive ? "bg-slate-950 text-emerald-400" : "bg-slate-800 text-slate-300"
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                )}
               </button>
             );
           })}
@@ -222,20 +274,44 @@ function AdminDashboardContent() {
         <div className="space-y-8">
           {/* Key Metrics */}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Registered Farmers</span>
+            <button
+              onClick={() => setActiveTab("farmers")}
+              className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1 text-left hover:border-emerald-500 hover:shadow-md transition group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Registered Farmers</span>
+                <Sprout className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition" />
+              </div>
               <div className="text-2xl font-black text-slate-900">
                 {dashboardData?.total_farmers ?? 0}
               </div>
-              <span className="text-[10px] text-slate-500">Live user records</span>
-            </div>
+              <span className="text-[10px] text-emerald-700 font-bold group-hover:underline flex items-center gap-1">
+                View Farmers Directory →
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab("produce")}
+              className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1 text-left hover:border-emerald-500 hover:shadow-md transition group"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Products Listed</span>
+                <Layers className="w-4 h-4 text-emerald-600 group-hover:scale-110 transition" />
+              </div>
+              <div className="text-2xl font-black text-slate-900">
+                {dashboardData?.active_listings ?? 0}
+              </div>
+              <span className="text-[10px] text-emerald-700 font-bold group-hover:underline flex items-center gap-1">
+                View Crops & Pricing →
+              </span>
+            </button>
 
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Active FPO Hubs</span>
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Stock Available</span>
               <div className="text-2xl font-black text-slate-900">
-                {dashboardData?.total_fpos ?? 0}
+                {(dashboardData?.total_volume_kg ?? 0).toLocaleString()} kg
               </div>
-              <span className="text-[10px] text-slate-500">Live user records</span>
+              <span className="text-[10px] text-slate-500">Live farm inventory</span>
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
@@ -247,19 +323,13 @@ function AdminDashboardContent() {
             </div>
 
             <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Logistics Fleet</span>
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">FPO Hubs & Buyers</span>
               <div className="text-2xl font-black text-slate-900">
-                {dashboardData?.active_routes ?? 0} Active Routes
+                {(dashboardData?.total_fpos ?? 0) + (dashboardData?.total_buyers ?? 0)}
               </div>
-              <span className="text-[10px] text-slate-500">Recorded logistics only</span>
-            </div>
-
-            <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-1">
-              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Platform Reserves</span>
-              <div className="text-2xl font-black text-slate-900">
-                {dashboardData?.total_buyers ?? 0}
-              </div>
-              <span className="text-[10px] text-slate-500">Registered buyers</span>
+              <span className="text-[10px] text-slate-500">
+                {dashboardData?.total_fpos ?? 0} FPOs • {dashboardData?.total_buyers ?? 0} Buyers
+              </span>
             </div>
           </div>
 
@@ -292,6 +362,170 @@ function AdminDashboardContent() {
                   </div>
                 );
               })}
+            </div>
+          </div>
+
+          {/* Quick Farmers Directory Preview */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Sprout className="w-4 h-4 text-emerald-600" />
+                  <h3 className="text-base font-bold text-slate-900">Live Registered Farmers & Producers</h3>
+                </div>
+                <p className="text-xs text-slate-500">Live farmer user records synchronized directly from the database.</p>
+              </div>
+              <button
+                onClick={() => setActiveTab("farmers")}
+                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 self-start sm:self-auto"
+              >
+                <span>View Full Farmers Directory ({dashboardData?.total_farmers ?? 0})</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-slate-200">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider">
+                  <tr>
+                    <th className="py-3 px-4"># ID</th>
+                    <th className="py-3 px-4">Farmer Name</th>
+                    <th className="py-3 px-4">Email / Phone</th>
+                    <th className="py-3 px-4">Farm / Business</th>
+                    <th className="py-3 px-4">District</th>
+                    <th className="py-3 px-4">Settlement UPI</th>
+                    <th className="py-3 px-4">Listed Produce</th>
+                    <th className="py-3 px-4 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium">
+                  {(!dashboardData?.farmers_list || dashboardData.farmers_list.length === 0) ? (
+                    <tr>
+                      <td colSpan={8} className="py-8 text-center text-slate-400">
+                        No farmer records found in the database.
+                      </td>
+                    </tr>
+                  ) : (
+                    dashboardData.farmers_list.slice(0, 5).map((f: any) => (
+                      <tr key={f.id} className="hover:bg-slate-50/70 transition">
+                        <td className="py-3 px-4 font-mono font-bold text-slate-500">#{f.id}</td>
+                        <td className="py-3 px-4">
+                          <div className="font-bold text-slate-900">{f.full_name}</div>
+                          <span className={`px-1.5 py-0.2 rounded text-[9px] font-black uppercase ${f.role === "fpo" ? "bg-purple-100 text-purple-800" : "bg-emerald-100 text-emerald-800"}`}>
+                            {f.role}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-slate-600">
+                          <div>{f.email}</div>
+                          <div className="text-[11px] text-slate-400">{f.phone}</div>
+                        </td>
+                        <td className="py-3 px-4 text-slate-700">{f.farm_name}</td>
+                        <td className="py-3 px-4 font-bold text-slate-800">{f.district}</td>
+                        <td className="py-3 px-4">
+                          <span className="font-mono text-xs bg-amber-50 text-amber-900 border border-amber-200 px-2 py-0.5 rounded font-bold">
+                            {f.upi_id}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="font-bold text-slate-900">{f.listings_count} crops</span>
+                          <div className="text-[11px] text-emerald-700 font-bold">{f.total_produce_kg} kg</div>
+                        </td>
+                        <td className="py-3 px-4 text-right">
+                          <button
+                            onClick={() => {
+                              setProduceSearchQuery(f.full_name);
+                              setActiveTab("produce");
+                            }}
+                            className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition"
+                          >
+                            <Eye className="w-3 h-3" /> Products
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Quick Products Listed Preview */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <div>
+                <div className="flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-emerald-600" />
+                  <h3 className="text-base font-bold text-slate-900">Live Products Listed by Farmers</h3>
+                </div>
+                <p className="text-xs text-slate-500">Produce currently posted by registered farmers with pricing and availability.</p>
+              </div>
+              <button
+                onClick={() => setActiveTab("produce")}
+                className="text-xs font-bold text-emerald-700 hover:text-emerald-800 flex items-center gap-1 self-start sm:self-auto"
+              >
+                <span>View Full Products & Pricing Directory ({dashboardData?.active_listings ?? 0})</span>
+                <ArrowUpRight className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className="overflow-x-auto rounded-2xl border border-slate-200">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider">
+                  <tr>
+                    <th className="py-3 px-4"># ID</th>
+                    <th className="py-3 px-4">Crop Name</th>
+                    <th className="py-3 px-4">Farmer / Producer</th>
+                    <th className="py-3 px-4">Grade</th>
+                    <th className="py-3 px-4">Available Quantity</th>
+                    <th className="py-3 px-4">Farmer Price</th>
+                    <th className="py-3 px-4">Total Value</th>
+                    <th className="py-3 px-4">District</th>
+                    <th className="py-3 px-4">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium">
+                  {(!dashboardData?.produce_listings || dashboardData.produce_listings.length === 0) ? (
+                    <tr>
+                      <td colSpan={9} className="py-8 text-center text-slate-400">
+                        No produce has been listed by farmers yet.
+                      </td>
+                    </tr>
+                  ) : (
+                    dashboardData.produce_listings.slice(0, 5).map((item: any) => (
+                      <tr key={item.id} className="hover:bg-slate-50/70 transition">
+                        <td className="py-3 px-4 font-mono font-bold text-slate-500">#{item.id}</td>
+                        <td className="py-3 px-4">
+                          <div className="font-bold text-slate-900">{item.produce_name}</div>
+                          <div className="text-[10px] text-slate-400">{item.category}</div>
+                        </td>
+                        <td className="py-3 px-4 text-slate-700">{item.farmer_name}</td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            Grade {item.grade}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 font-bold text-slate-900">{item.quantity_available} {item.unit}</td>
+                        <td className="py-3 px-4 font-black text-emerald-700">₹{Number(item.price_per_unit).toFixed(2)}/kg</td>
+                        <td className="py-3 px-4 font-bold text-slate-900">
+                          ₹{Number(item.total_value || item.quantity_available * item.price_per_unit).toLocaleString("en-IN")}
+                        </td>
+                        <td className="py-3 px-4 text-slate-600">{item.district}</td>
+                        <td className="py-3 px-4">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                              item.status === "AVAILABLE"
+                                ? "bg-emerald-100 text-emerald-800"
+                                : "bg-amber-100 text-amber-800"
+                            }`}
+                          >
+                            {item.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
 
@@ -398,7 +632,380 @@ function AdminDashboardContent() {
         </div>
       )}
 
-      {/* TAB 2: PRICE MANAGEMENT ENGINE */}
+      {/* TAB: FARMERS & PRODUCERS DIRECTORY */}
+      {activeTab === "farmers" && (
+        <div className="space-y-6">
+          {/* Header & Search */}
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 rounded-full text-xs font-bold border border-emerald-200">
+                  <Sprout className="w-3.5 h-3.5" />
+                  <span>Real-time Producer Registry</span>
+                </div>
+                <h2 className="text-2xl font-black text-slate-900 mt-2">Registered Farmers & FPO Directory</h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  Connected directly to the database. View all registered farmers, farm locations, UPI settlement IDs, and produce inventory.
+                </p>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <div className="relative min-w-[260px]">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                  <input
+                    type="text"
+                    placeholder="Search farmer, farm, district, UPI..."
+                    value={farmerSearchQuery}
+                    onChange={(e) => setFarmerSearchQuery(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 bg-slate-50 pl-9 pr-3 py-2 text-xs text-slate-900 outline-none focus:border-emerald-500 focus:bg-white transition"
+                  />
+                </div>
+                {farmerSearchQuery && (
+                  <button
+                    onClick={() => setFarmerSearchQuery("")}
+                    className="px-2.5 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 bg-slate-100 rounded-xl"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Farmers</span>
+                <div className="text-xl font-black text-slate-900 mt-1">
+                  {(dashboardData?.farmers_list || []).filter((f: any) => f.role === "farmer").length}
+                </div>
+                <span className="text-[10px] text-emerald-700 font-bold">Individual cultivators</span>
+              </div>
+
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">FPO Organizations</span>
+                <div className="text-xl font-black text-slate-900 mt-1">
+                  {(dashboardData?.farmers_list || []).filter((f: any) => f.role === "fpo").length}
+                </div>
+                <span className="text-[10px] text-emerald-700 font-bold">Aggregation hubs</span>
+              </div>
+
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Volume Listed</span>
+                <div className="text-xl font-black text-emerald-800 mt-1">
+                  {(dashboardData?.farmers_list || []).reduce((sum: number, f: any) => sum + (f.total_produce_kg || 0), 0).toLocaleString()} kg
+                </div>
+                <span className="text-[10px] text-slate-500">Across all active crops</span>
+              </div>
+
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Settlement KYC Status</span>
+                <div className="text-xl font-black text-emerald-700 mt-1">100% Verified</div>
+                <span className="text-[10px] text-slate-500">NPCI Direct Credit ready</span>
+              </div>
+            </div>
+
+            {/* Farmers Table */}
+            <div className="border border-slate-200 rounded-2xl overflow-hidden mt-4">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
+                    <tr>
+                      <th className="py-3.5 px-4"># ID</th>
+                      <th className="py-3.5 px-4">Farmer / Producer</th>
+                      <th className="py-3.5 px-4">Contact</th>
+                      <th className="py-3.5 px-4">Farm / Business</th>
+                      <th className="py-3.5 px-4">District / State</th>
+                      <th className="py-3.5 px-4">Settlement UPI ID</th>
+                      <th className="py-3.5 px-4">Land / Size</th>
+                      <th className="py-3.5 px-4">KYC</th>
+                      <th className="py-3.5 px-4">Products Listed</th>
+                      <th className="py-3.5 px-4">Registered On</th>
+                      <th className="py-3.5 px-4 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    {filteredFarmers.length === 0 ? (
+                      <tr>
+                        <td colSpan={11} className="py-12 text-center text-slate-400">
+                          {dashboardData?.farmers_list?.length === 0
+                            ? "No farmers have registered in the database yet."
+                            : "No farmers match your search query."}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredFarmers.map((f: any) => (
+                        <tr key={f.id} className="hover:bg-slate-50/80 transition">
+                          <td className="py-3.5 px-4 font-mono font-bold text-slate-500">#{f.id}</td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-bold text-slate-900 flex items-center gap-1.5">
+                              {f.full_name}
+                              <span
+                                className={`px-1.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
+                                  f.role === "fpo"
+                                    ? "bg-purple-100 text-purple-800"
+                                    : "bg-emerald-100 text-emerald-800"
+                                }`}
+                              >
+                                {f.role}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-600">
+                            <div>{f.email}</div>
+                            <div className="text-[11px] text-slate-400">{f.phone}</div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-bold text-slate-800">{f.farm_name}</div>
+                            <div className="text-[11px] text-slate-500">{f.village}</div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="font-bold text-slate-700">{f.district}</span>
+                            <span className="text-slate-400">, {f.state}</span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="font-mono text-xs bg-amber-50 text-amber-900 border border-amber-200 px-2 py-0.5 rounded-md font-bold">
+                              {f.upi_id}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-700">
+                            {f.land_size_acres} {f.role === "fpo" ? "Members" : "Acres"}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 inline-flex items-center gap-1">
+                              <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                              {f.kyc_status}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="font-bold text-slate-900">{f.listings_count} crops</span>
+                            <div className="text-[11px] text-emerald-700 font-bold">{f.total_produce_kg} kg total</div>
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-500 text-[11px]">
+                            {f.created_at ? new Date(f.created_at).toLocaleDateString() : "Active"}
+                          </td>
+                          <td className="py-3.5 px-4 text-right">
+                            <button
+                              onClick={() => {
+                                setProduceSearchQuery(f.full_name);
+                                setActiveTab("produce");
+                              }}
+                              className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition"
+                            >
+                              <Eye className="w-3 h-3" /> Products
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: LISTED PRODUCTS & PRICING DIRECTORY */}
+      {activeTab === "produce" && (
+        <div className="space-y-6">
+          {/* Header & Filters */}
+          <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 text-emerald-800 rounded-full text-xs font-bold border border-emerald-200">
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>Real-time Marketplace Inventory</span>
+                </div>
+                <h2 className="text-2xl font-black text-slate-900 mt-2">Listed Products & Pricing Directory</h2>
+                <p className="text-xs text-slate-500 mt-1">
+                  Live inventory of all crops and produce listed by registered farmers and FPOs with quantity, pricing, and live status.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative min-w-[240px]">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                  <input
+                    type="text"
+                    placeholder="Search crop, farmer, district..."
+                    value={produceSearchQuery}
+                    onChange={(e) => setProduceSearchQuery(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 bg-slate-50 pl-9 pr-3 py-2 text-xs text-slate-900 outline-none focus:border-emerald-500 focus:bg-white transition"
+                  />
+                </div>
+
+                <select
+                  value={produceStatusFilter}
+                  onChange={(e) => setProduceStatusFilter(e.target.value)}
+                  className="rounded-xl border border-slate-300 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-800 outline-none focus:border-emerald-500 focus:bg-white transition"
+                >
+                  <option value="ALL">All Statuses</option>
+                  <option value="AVAILABLE">AVAILABLE Only</option>
+                  <option value="RESERVED">RESERVED Only</option>
+                  <option value="SOLD">SOLD Only</option>
+                </select>
+
+                {produceSearchQuery && (
+                  <button
+                    onClick={() => setProduceSearchQuery("")}
+                    className="px-2.5 py-2 text-xs font-bold text-slate-500 hover:text-slate-800 bg-slate-100 rounded-xl"
+                  >
+                    Clear Filter
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Metrics */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-2">
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Products Listed</span>
+                <div className="text-xl font-black text-slate-900 mt-1">
+                  {(dashboardData?.produce_listings || []).length} Products
+                </div>
+                <span className="text-[10px] text-emerald-700 font-bold">
+                  {(dashboardData?.produce_listings || []).filter((p: any) => p.status === "AVAILABLE").length} currently available
+                </span>
+              </div>
+
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Available Stock</span>
+                <div className="text-xl font-black text-emerald-800 mt-1">
+                  {(dashboardData?.produce_listings || [])
+                    .filter((p: any) => p.status === "AVAILABLE")
+                    .reduce((sum: number, p: any) => sum + (p.quantity_available || 0), 0)
+                    .toLocaleString()}{" "}
+                  kg
+                </div>
+                <span className="text-[10px] text-slate-500">Farm-gate inventory</span>
+              </div>
+
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Inventory Valuation</span>
+                <div className="text-xl font-black text-slate-900 mt-1">
+                  ₹
+                  {(dashboardData?.produce_listings || [])
+                    .filter((p: any) => p.status === "AVAILABLE")
+                    .reduce((sum: number, p: any) => sum + (p.total_value || p.quantity_available * p.price_per_unit || 0), 0)
+                    .toLocaleString("en-IN")}
+                </div>
+                <span className="text-[10px] text-slate-500">Live platform market value</span>
+              </div>
+
+              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Average Farmer Price</span>
+                <div className="text-xl font-black text-emerald-700 mt-1">
+                  ₹
+                  {((dashboardData?.produce_listings || []).length > 0
+                    ? (
+                        (dashboardData?.produce_listings || []).reduce(
+                          (sum: number, p: any) => sum + (p.price_per_unit || 0),
+                          0
+                        ) / (dashboardData?.produce_listings || []).length
+                      ).toFixed(1)
+                    : "0.00")}
+                  /kg
+                </div>
+                <span className="text-[10px] text-slate-500">Direct producer realization</span>
+              </div>
+            </div>
+
+            {/* Produce Listings Table */}
+            <div className="border border-slate-200 rounded-2xl overflow-hidden mt-4">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
+                    <tr>
+                      <th className="py-3.5 px-4"># ID</th>
+                      <th className="py-3.5 px-4">Crop / Produce</th>
+                      <th className="py-3.5 px-4">Farmer / Producer</th>
+                      <th className="py-3.5 px-4">Grade</th>
+                      <th className="py-3.5 px-4">Available Quantity</th>
+                      <th className="py-3.5 px-4">Farmer Rate (₹/kg)</th>
+                      <th className="py-3.5 px-4">Total Lot Value</th>
+                      <th className="py-3.5 px-4">District / Location</th>
+                      <th className="py-3.5 px-4">Freshness</th>
+                      <th className="py-3.5 px-4">Status</th>
+                      <th className="py-3.5 px-4">Listed Date</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    {filteredProduce.length === 0 ? (
+                      <tr>
+                        <td colSpan={11} className="py-12 text-center text-slate-400">
+                          {dashboardData?.produce_listings?.length === 0
+                            ? "No produce listings have been posted by farmers yet."
+                            : "No produce listings match your search and filter criteria."}
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredProduce.map((item: any) => (
+                        <tr key={item.id} className="hover:bg-slate-50/80 transition">
+                          <td className="py-3.5 px-4 font-mono font-bold text-slate-500">#{item.id}</td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-black text-slate-900 text-sm">{item.produce_name}</div>
+                            <div className="text-[11px] text-slate-500">{item.category}</div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-bold text-slate-800">{item.farmer_name}</div>
+                            <div className="text-[11px] text-slate-400">{item.farmer_email}</div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                              Grade {item.grade}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-black text-slate-900 text-sm">
+                              {item.quantity_available} {item.unit}
+                            </div>
+                            {item.quantity_initial && item.quantity_initial !== item.quantity_available && (
+                              <div className="text-[10px] text-slate-400">Initial: {item.quantity_initial} kg</div>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4 font-black text-emerald-700 text-sm">
+                            ₹{Number(item.price_per_unit).toFixed(2)}/kg
+                          </td>
+                          <td className="py-3.5 px-4 font-black text-slate-900">
+                            ₹{Number(item.total_value || item.quantity_available * item.price_per_unit).toLocaleString("en-IN")}
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <div className="font-bold text-slate-700">{item.district}</div>
+                            <div className="text-[11px] text-slate-400">{item.location_name}</div>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                              {item.freshness_window_days} Days
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4">
+                            <span
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+                                item.status === "AVAILABLE"
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : item.status === "RESERVED"
+                                  ? "bg-amber-100 text-amber-800"
+                                  : "bg-blue-100 text-blue-800"
+                              }`}
+                            >
+                              {item.status}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 text-slate-500 text-[11px]">
+                            {item.created_at ? new Date(item.created_at).toLocaleDateString() : "Recent"}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: PRICE MANAGEMENT ENGINE */}
       {activeTab === "pricing" && (
         <div className="space-y-6">
           <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-4">
