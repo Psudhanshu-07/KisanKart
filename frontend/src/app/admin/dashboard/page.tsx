@@ -611,10 +611,10 @@ function AdminDashboardContent() {
                           Grade {rule.grade}
                         </span>
                       </td>
-                      <td className="py-3 px-4 font-bold text-emerald-700">₹{rule.farmer_base_price.toFixed(2)}</td>
-                      <td className="py-3 px-4 text-slate-600">₹{rule.logistics_cost.toFixed(2)}</td>
-                      <td className="py-3 px-4 text-slate-600">₹{rule.platform_margin.toFixed(2)}</td>
-                      <td className="py-3 px-4 font-black text-slate-900">₹{rule.indicative_market_price.toFixed(2)}</td>
+                      <td className="py-3 px-4 font-bold text-emerald-700">₹{Number(rule.farmer_base_price ?? rule.farmer_realisation ?? 0).toFixed(2)}</td>
+                      <td className="py-3 px-4 text-slate-600">₹{Number(rule.logistics_cost ?? 0).toFixed(2)}</td>
+                      <td className="py-3 px-4 text-slate-600">₹{Number(rule.platform_margin ?? rule.platform_fee ?? 0).toFixed(2)}</td>
+                      <td className="py-3 px-4 font-black text-slate-900">₹{Number(rule.indicative_market_price ?? rule.consumer_price ?? 0).toFixed(2)}</td>
                       <td className="py-3 px-4 text-right">
                         <button
                           onClick={() => handleOpenEditPrice(rule)}
@@ -1045,10 +1045,10 @@ function AdminDashboardContent() {
                           Grade {rule.grade}
                         </span>
                       </td>
-                      <td className="py-3.5 px-4 font-bold text-emerald-700">₹{rule.farmer_base_price.toFixed(2)}</td>
-                      <td className="py-3.5 px-4 text-slate-600">₹{rule.logistics_cost.toFixed(2)}</td>
-                      <td className="py-3.5 px-4 text-slate-600">₹{rule.platform_margin.toFixed(2)}</td>
-                      <td className="py-3.5 px-4 font-black text-slate-900">₹{rule.indicative_market_price.toFixed(2)}</td>
+                      <td className="py-3.5 px-4 font-bold text-emerald-700">₹{Number(rule.farmer_base_price ?? rule.farmer_realisation ?? 0).toFixed(2)}</td>
+                      <td className="py-3.5 px-4 text-slate-600">₹{Number(rule.logistics_cost ?? 0).toFixed(2)}</td>
+                      <td className="py-3.5 px-4 text-slate-600">₹{Number(rule.platform_margin ?? rule.platform_fee ?? 0).toFixed(2)}</td>
+                      <td className="py-3.5 px-4 font-black text-slate-900">₹{Number(rule.indicative_market_price ?? rule.consumer_price ?? 0).toFixed(2)}</td>
                       <td className="py-3.5 px-4 text-right">
                         <button
                           onClick={() => handleOpenEditPrice(rule)}
@@ -1099,10 +1099,10 @@ function AdminDashboardContent() {
                           })}
                         </td>
                         <td className="py-3 px-4 font-bold text-slate-900">{item.crop}</td>
-                        <td className="py-3 px-4 text-slate-500">₹{item.old_indicative_price?.toFixed(2)}</td>
-                        <td className="py-3 px-4 font-bold text-emerald-700">₹{item.new_indicative_price?.toFixed(2)}</td>
-                        <td className="py-3 px-4 text-slate-500">₹{item.old_farmer_base_price?.toFixed(2)}</td>
-                        <td className="py-3 px-4 font-bold text-emerald-700">₹{item.new_farmer_base_price?.toFixed(2)}</td>
+                        <td className="py-3 px-4 text-slate-500">₹{Number(item.old_indicative_price || 0).toFixed(2)}</td>
+                        <td className="py-3 px-4 font-bold text-emerald-700">₹{Number(item.new_indicative_price || 0).toFixed(2)}</td>
+                        <td className="py-3 px-4 text-slate-500">₹{Number(item.old_farmer_base_price || 0).toFixed(2)}</td>
+                        <td className="py-3 px-4 font-bold text-emerald-700">₹{Number(item.new_farmer_base_price || 0).toFixed(2)}</td>
                         <td className="py-3 px-4 text-slate-600">{item.reason || "Platform baseline"}</td>
                       </tr>
                     ))
@@ -1139,9 +1139,9 @@ function AdminDashboardContent() {
                     <tr key={`${item.crop}-${item.district}`}>
                       <td className="py-3 px-4 font-bold text-slate-900">{item.crop}</td>
                       <td className="py-3 px-4 text-slate-600">{item.district}</td>
-                      <td className="py-3 px-4">{Number(item.demand_kg).toLocaleString("en-IN")}</td>
-                      <td className="py-3 px-4">{Number(item.supply_kg).toLocaleString("en-IN")}</td>
-                      <td className="py-3 px-4 font-bold">{Number(item.gap_kg).toLocaleString("en-IN")}</td>
+                      <td className="py-3 px-4">{Number(item.demand_kg || 0).toLocaleString("en-IN")}</td>
+                      <td className="py-3 px-4">{Number(item.supply_kg || 0).toLocaleString("en-IN")}</td>
+                      <td className="py-3 px-4 font-bold">{Number(item.gap_kg || 0).toLocaleString("en-IN")}</td>
                       <td className="py-3 px-4"><span className="rounded-full bg-slate-100 px-2 py-1 font-bold text-slate-700">{item.status}</span></td>
                     </tr>
                   ))}

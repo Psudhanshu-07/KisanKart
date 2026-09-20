@@ -63,36 +63,41 @@ export default function ConsumerShopPage() {
 
   const handleAddToCart = (produce: any) => {
     const qty = quantities[produce.id] || 10;
+    const cropName = produce.produce_name || produce.crop_name || produce.crop || "Fresh Produce";
+    const cropLower = cropName.toLowerCase();
+    const farmerPrice = Number(produce.price_per_unit || 25.0);
+
     // Calculate retail consumer price (admin indicative: ₹32 for tomato, or price_per_unit * 1.18)
-    const consumerPrice = produce.crop_name.toLowerCase().includes("tomato")
+    const consumerPrice = cropLower.includes("tomato")
       ? 32.0
-      : produce.crop_name.toLowerCase().includes("onion")
+      : cropLower.includes("onion")
       ? 35.0
-      : produce.crop_name.toLowerCase().includes("potato")
+      : cropLower.includes("potato")
       ? 22.0
-      : Number((produce.price_per_unit * 1.18).toFixed(2));
+      : Number((farmerPrice * 1.18).toFixed(2));
 
     addToCart({
       id: produce.id,
-      crop: produce.crop_name,
-      grade: produce.grade,
+      crop: cropName,
+      grade: produce.grade || "A",
       quantity: qty,
       price_per_kg: consumerPrice,
       farmer_name: produce.farmer_name || "Verified Producer",
-      farmer_id: produce.farmer_id || 1,
+      farmer_id: produce.farmer_id || produce.user_id || 1,
       district: produce.district || "Nashik",
-      shelf_life_days: produce.shelf_life_days || 5
+      shelf_life_days: produce.freshness_window_days || produce.shelf_life_days || 5
     });
 
-    setToastMessage(`Added ${qty} kg ${produce.crop_name} to cart!`);
+    setToastMessage(`Added ${qty} kg ${cropName} to cart!`);
     setTimeout(() => setToastMessage(""), 3500);
   };
 
   const filteredListings = listings.filter((item) => {
     const matchesCategory = selectedCategory === "All" || item.category === selectedCategory;
-    const matchesSearch =
-      item.crop_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.district.toLowerCase().includes(searchQuery.toLowerCase());
+    const crop = (item.produce_name || item.crop_name || item.crop || "").toLowerCase();
+    const district = (item.district || "").toLowerCase();
+    const query = searchQuery.toLowerCase();
+    const matchesSearch = crop.includes(query) || district.includes(query);
     return matchesCategory && matchesSearch;
   });
 
@@ -222,17 +227,22 @@ export default function ConsumerShopPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredListings.map((item) => {
             const qty = quantities[item.id] || 10;
-            const retailPrice = item.crop_name.toLowerCase().includes("tomato")
-              ? 32.0
-              : item.crop_name.toLowerCase().includes("onion")
-              ? 35.0
-              : item.crop_name.toLowerCase().includes("potato")
-              ? 22.0
-              : Number((item.price_per_unit * 1.18).toFixed(2));
+            const cropName = item.produce_name || item.crop_name || item.crop || "Fresh Produce";
+            const cropLower = cropName.toLowerCase();
+            const farmerShare = Number(item.price_per_unit || 27.0);
 
-            const farmerShare = item.price_per_unit || 27.0;
+            const retailPrice = cropLower.includes("tomato")
+              ? 32.0
+              : cropLower.includes("onion")
+              ? 35.0
+              : cropLower.includes("potato")
+              ? 22.0
+              : Number((farmerShare * 1.18).toFixed(2));
+
             const logisticsShare = 3.0;
-            const platformShare = Number((retailPrice - farmerShare - logisticsShare).toFixed(2));
+            const platformShare = Number(Math.max(0, retailPrice - farmerShare - logisticsShare).toFixed(2));
+            const availKg = item.quantity_available ?? item.quantity_kg ?? 0;
+            const shelfDays = item.freshness_window_days ?? item.shelf_life_days ?? 5;
 
             return (
               <div
@@ -243,18 +253,18 @@ export default function ConsumerShopPage() {
                   {/* Top Badge: Quality Grade & District */}
                   <div className="flex items-center justify-between">
                     <span className="px-3 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200 rounded-full text-xs font-extrabold uppercase">
-                      Grade {item.grade} Certified
+                      Grade {item.grade || "A"} Certified
                     </span>
                     <span className="text-xs text-slate-500 flex items-center gap-1">
                       <MapPin className="w-3.5 h-3.5 text-slate-400" />
-                      {item.district}
+                      {item.district || "Nashik"}
                     </span>
                   </div>
 
                   {/* Produce Title & Source */}
                   <div>
                     <h3 className="text-2xl font-black text-slate-900 group-hover:text-emerald-700 transition">
-                      {item.crop_name}
+                      {cropName}
                     </h3>
                     <div className="text-xs text-slate-500 mt-1 flex items-center gap-1.5">
                       <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
@@ -266,11 +276,11 @@ export default function ConsumerShopPage() {
                   <div className="flex items-center gap-3 text-xs text-slate-600 bg-slate-50 p-2.5 rounded-xl">
                     <span className="flex items-center gap-1">
                       <Clock className="w-3.5 h-3.5 text-emerald-600" />
-                      Harvested 18h ago
+                      Harvested recently
                     </span>
                     <span>•</span>
                     <span className="text-emerald-700 font-semibold">
-                      Freshness: {item.shelf_life_days || 5} Days Shelf Life
+                      Freshness: {shelfDays} Days Shelf Life
                     </span>
                   </div>
 
@@ -304,7 +314,7 @@ export default function ConsumerShopPage() {
                   {/* Available Quantity */}
                   <div className="text-xs text-slate-500 flex justify-between">
                     <span>Available in Cluster:</span>
-                    <span className="font-bold text-slate-800">{item.quantity_kg} kg</span>
+                    <span className="font-bold text-slate-800">{availKg} kg</span>
                   </div>
                 </div>
 
