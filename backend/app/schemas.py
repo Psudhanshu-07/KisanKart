@@ -5,7 +5,10 @@ from datetime import datetime
 # --- Auth Schemas ---
 class UserRegister(BaseModel):
     email: EmailStr
-    full_name: str
+    full_name: Optional[str] = None
+    name: Optional[str] = None
+    fullName: Optional[str] = None
+    farmer_name: Optional[str] = None
     password: str
     role: str  # farmer, fpo, buyer, driver, admin
     phone: Optional[str] = None
@@ -38,16 +41,25 @@ class UserResponse(BaseModel):
 
 # --- Produce Listing Schemas ---
 class ListingCreate(BaseModel):
-    produce_name: str
+    produce_name: Optional[str] = None
+    crop_name: Optional[str] = None
+    crop: Optional[str] = None
+    name: Optional[str] = None
     category: Optional[str] = "Vegetable"
-    quantity_available: float = Field(gt=0)
+    quantity_available: Optional[float] = None
+    quantity_kg: Optional[float] = None
+    quantity: Optional[float] = None
     unit: Optional[str] = "kg"
     grade: Optional[str] = "A"  # A, B, C
-    price_per_unit: float = Field(gt=0)
-    location_name: str
-    district: str
+    price_per_unit: Optional[float] = None
+    price_per_kg: Optional[float] = None
+    rate_per_kg: Optional[float] = None
+    farmer_price: Optional[float] = None
+    location_name: Optional[str] = "Pimpalgaon Farm Cluster"
+    district: Optional[str] = "Nashik"
     state: Optional[str] = "Maharashtra"
     freshness_window_days: Optional[int] = 4
+    shelf_life_days: Optional[int] = 4
     freshness_priority: Optional[str] = "HIGH"
 
 class ListingResponse(BaseModel):

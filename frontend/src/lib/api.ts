@@ -23,8 +23,14 @@ export async function fetchFromApi(endpoint: string, options: RequestInit = {}) 
   const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
   let base = getApiBase();
 
-  // In browser, ensure /auth/login uses Next.js native API route directly for instant Supabase verification
-  if (typeof window !== "undefined" && cleanEndpoint.startsWith("/auth/login")) {
+  // In browser, ensure /auth/login, /auth/register, and /produce use Next.js native API routes directly for instant Supabase verification
+  if (
+    typeof window !== "undefined" &&
+    (cleanEndpoint.startsWith("/auth/login") ||
+      cleanEndpoint.startsWith("/auth/register") ||
+      cleanEndpoint === "/produce" ||
+      cleanEndpoint.startsWith("/produce?"))
+  ) {
     base = "/api";
   }
 
@@ -192,6 +198,9 @@ export async function loginUser(credentials: { email: string; password: string }
 export async function registerUser(data: {
   email: string;
   full_name: string;
+  name?: string;
+  fullName?: string;
+  farmer_name?: string;
   password: string;
   role: "farmer" | "buyer" | "fpo";
   phone?: string;

@@ -82,24 +82,27 @@ def create_listing(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    crop_lower = req.produce_name.lower().strip()
+    p_name = (req.produce_name or req.crop_name or req.crop or req.name or "Tomato").strip()
+    crop_lower = p_name.lower()
     meta = CROP_METADATA.get(crop_lower, {"shelf_life": 5, "category": "Vegetable"})
 
     now = datetime.datetime.utcnow()
-    shelf_days = req.freshness_window_days or meta["shelf_life"]
+    shelf_days = req.freshness_window_days or req.shelf_life_days or meta.get("shelf_life", 5)
     deadline = now + datetime.timedelta(days=shelf_days)
+    qty = float(req.quantity_available or req.quantity_kg or req.quantity or 100.0)
+    price = float(req.price_per_unit or req.price_per_kg or req.rate_per_kg or req.farmer_price or 25.0)
 
     listing = ProduceListing(
         user_id=current_user.id,
-        produce_name=req.produce_name.capitalize(),
-        category=req.category or meta["category"],
-        quantity_available=req.quantity_available,
-        quantity_initial=req.quantity_available,
+        produce_name=p_name.capitalize(),
+        category=req.category or meta.get("category", "Vegetable"),
+        quantity_available=qty,
+        quantity_initial=qty,
         unit=req.unit or "kg",
         grade=req.grade or "A",
-        price_per_unit=req.price_per_unit,
-        location_name=req.location_name,
-        district=req.district,
+        price_per_unit=price,
+        location_name=req.location_name or "Pimpalgaon Farm Cluster",
+        district=req.district or "Nashik",
         state=req.state or "Maharashtra",
         harvest_date=now,
         freshness_window_days=shelf_days,

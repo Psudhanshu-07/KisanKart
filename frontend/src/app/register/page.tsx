@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, CheckCircle2, MapPin, Mail, Lock, Phone, User, Sprout, ShoppingBag, ShieldCheck, Wallet } from "lucide-react";
+import { ArrowRight, CheckCircle2, MapPin, Mail, Lock, Phone, User, Sprout, ShoppingBag, ShieldCheck, Wallet, Users } from "lucide-react";
 import { registerUser } from "@/lib/api";
 import { useApp } from "@/context/AppContext";
 
@@ -11,7 +11,7 @@ export default function RegisterPage() {
   const router = useRouter();
   const { loginSession } = useApp();
 
-  const [role, setRole] = useState<"farmer" | "buyer">("farmer");
+  const [role, setRole] = useState<"farmer" | "fpo" | "buyer">("farmer");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -40,6 +40,12 @@ export default function RegisterPage() {
         profileData.farm_name = businessName || `${fullName}'s Farm`;
         profileData.village = "Farm Gate";
         profileData.upi_id = upiId || "";
+      } else if (role === "fpo") {
+        profileData.fpo_name = businessName || `${fullName} FPO`;
+        profileData.business_name = businessName || `${fullName} FPO`;
+        profileData.registration_number = "FPO-" + Math.floor(100000 + Math.random() * 900000);
+        profileData.district = district;
+        profileData.upi_id = upiId || "";
       } else {
         profileData.business_name = businessName || `${fullName}'s Store`;
         profileData.buyer_type = "retailer";
@@ -49,6 +55,9 @@ export default function RegisterPage() {
       const res = await registerUser({
         email,
         full_name: fullName,
+        name: fullName,
+        fullName: fullName,
+        farmer_name: fullName,
         password,
         role,
         phone,
@@ -63,7 +72,7 @@ export default function RegisterPage() {
         access_token: res.access_token,
       });
 
-      if (res.role === "farmer") {
+      if (res.role === "farmer" || res.role === "fpo") {
         router.push("/farmer/dashboard");
       } else {
         router.push("/shop");
@@ -116,22 +125,32 @@ export default function RegisterPage() {
               </div>
             </div>
 
-            <div className="mb-6 grid grid-cols-2 gap-3 rounded-2xl bg-orange-50 p-2 border border-orange-100">
+            <div className="mb-6 grid grid-cols-3 gap-2 rounded-2xl bg-orange-50 p-2 border border-orange-100">
               <button
                 type="button"
                 onClick={() => setRole("farmer")}
-                className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition ${
-                  role === "farmer" ? "bg-orange-500 text-white shadow-md" : "bg-white text-slate-700"
+                className={`flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold transition ${
+                  role === "farmer" ? "bg-orange-500 text-white shadow-md" : "bg-white text-slate-700 hover:bg-orange-100/50"
                 }`}
               >
                 <Sprout className="h-4 w-4" />
-                Farmer / FPO
+                Farmer
+              </button>
+              <button
+                type="button"
+                onClick={() => setRole("fpo")}
+                className={`flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold transition ${
+                  role === "fpo" ? "bg-orange-500 text-white shadow-md" : "bg-white text-slate-700 hover:bg-orange-100/50"
+                }`}
+              >
+                <Users className="h-4 w-4" />
+                FPO
               </button>
               <button
                 type="button"
                 onClick={() => setRole("buyer")}
-                className={`flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-sm font-bold transition ${
-                  role === "buyer" ? "bg-orange-500 text-white shadow-md" : "bg-white text-slate-700"
+                className={`flex items-center justify-center gap-1.5 rounded-xl px-3 py-2.5 text-xs sm:text-sm font-bold transition ${
+                  role === "buyer" ? "bg-orange-500 text-white shadow-md" : "bg-white text-slate-700 hover:bg-orange-100/50"
                 }`}
               >
                 <ShoppingBag className="h-4 w-4" />
@@ -221,14 +240,14 @@ export default function RegisterPage() {
 
                 <div className="sm:col-span-2">
                   <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">
-                    {role === "farmer" ? "Farm / business name" : "Business / store name"}
+                    {role === "farmer" ? "Farm / business name" : role === "fpo" ? "FPO organization name" : "Business / store name"}
                   </label>
                   <input
                     required
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
                     className="w-full rounded-xl border border-slate-300 bg-slate-50 py-2.5 px-3 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white"
-                    placeholder={role === "farmer" ? "e.g. Shri Ganesh Farms" : "e.g. Fresh Basket Foods"}
+                    placeholder={role === "farmer" ? "e.g. Shri Ganesh Farms" : role === "fpo" ? "e.g. Sahyadri Farmers Producer Co." : "e.g. Fresh Basket Foods"}
                   />
                 </div>
 
@@ -242,19 +261,19 @@ export default function RegisterPage() {
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
                       className="w-full rounded-xl border border-slate-300 bg-slate-50 py-2.5 pl-9 pr-3 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white"
-                      placeholder={role === "farmer" ? "Farm address or pickup location" : "Delivery address"}
+                      placeholder={role === "farmer" ? "Farm address or pickup location" : role === "fpo" ? "FPO office or aggregation center address" : "Delivery address"}
                     />
                   </div>
                 </div>
 
-                {role === "farmer" && (
+                {(role === "farmer" || role === "fpo") && (
                   <div className="sm:col-span-2">
                     <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">UPI / payment receiving ID</label>
                     <input
                       value={upiId}
                       onChange={(e) => setUpiId(e.target.value)}
                       className="w-full rounded-xl border border-slate-300 bg-slate-50 py-2.5 px-3 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white"
-                      placeholder="farmername@upi"
+                      placeholder={role === "fpo" ? "fpo@upi or demo@kisankart" : "farmername@upi or demo@kisankart"}
                     />
                   </div>
                 )}
@@ -265,7 +284,7 @@ export default function RegisterPage() {
                 disabled={loading}
                 className="w-full rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-orange-500/20 transition hover:from-orange-600 hover:to-amber-600 disabled:opacity-60"
               >
-                {loading ? "Creating account..." : `Create ${role === "farmer" ? "Farmer" : "Buyer"} account`}
+                {loading ? "Creating account..." : `Create ${role === "farmer" ? "Farmer" : role === "fpo" ? "FPO" : "Buyer"} account`}
               </button>
             </form>
 

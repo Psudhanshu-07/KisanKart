@@ -188,17 +188,23 @@ function FarmerFPODashboardContent() {
 
     try {
       const farmerPrice = suggestedPriceRule ? suggestedPriceRule.farmer_base_price : 27;
+      const shelfDays = produceCrop.toLowerCase().includes("tomato") ? 5 : (produceCrop.toLowerCase().includes("onion") ? 30 : 10);
+      const qty = parseFloat(produceQuantity) || 100;
       await createProduceListing({
+        produce_name: produceCrop,
         crop_name: produceCrop,
-        quantity_kg: parseFloat(produceQuantity),
+        quantity_available: qty,
+        quantity_kg: qty,
         grade: produceGrade,
         price_per_unit: farmerPrice, // platform determined
+        price_per_kg: farmerPrice,
         unit: "kg",
         category: "Vegetables",
         location_name: "Pimpalgaon Farm Cluster",
         district: district,
         harvest_date: harvestDate,
-        shelf_life_days: produceCrop.toLowerCase().includes("tomato") ? 5 : 10
+        freshness_window_days: shelfDays,
+        shelf_life_days: shelfDays
       });
       setListingSuccess(true);
       loadData();

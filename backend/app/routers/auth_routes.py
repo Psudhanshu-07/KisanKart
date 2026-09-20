@@ -20,9 +20,13 @@ def register(req: UserRegister, db: Session = Depends(get_db)):
     if existing:
         raise HTTPException(status_code=400, detail="Email already registered")
 
+    resolved_full_name = (req.full_name or req.name or req.fullName or req.farmer_name or "").strip()
+    if not resolved_full_name:
+        resolved_full_name = "Kisan Farmer" if requested_role == "farmer" else "Kisan FPO" if requested_role == "fpo" else "Buyer"
+
     user = User(
         email=req.email,
-        full_name=req.full_name,
+        full_name=resolved_full_name,
         hashed_password=hash_password(req.password),
         role=requested_role,
         phone=req.phone
@@ -37,18 +41,19 @@ def register(req: UserRegister, db: Session = Depends(get_db)):
         fp = FarmerProfile(
             user_id=user.id,
             farm_name=p_data.get("farm_name", f"{user.full_name}'s Farm"),
-            village=p_data.get("village", "Pimpalgaon"),
+            village=p_data.get("village", "Farm Gate"),
             district=p_data.get("district", "Nashik"),
-            land_size_acres=p_data.get("land_size_acres", 3.0),
+            land_size_acres=float(p_data.get("land_size_acres", 3.0) or 3.0),
+            upi_id=p_data.get("upi_id", "demo@kisankart"),
             kyc_status="VERIFIED"
         )
         db.add(fp)
     elif user.role == "fpo":
         fpop = FPOProfile(
             user_id=user.id,
-            fpo_name=p_data.get("fpo_name", f"{user.full_name} FPO"),
+            fpo_name=p_data.get("fpo_name") or p_data.get("business_name") or f"{user.full_name} FPO",
             district=p_data.get("district", "Nashik"),
-            member_count=p_data.get("member_count", 150),
+            member_count=int(p_data.get("member_count", 150) or 150),
             verification_status="VERIFIED"
         )
         db.add(fpop)
