@@ -136,3 +136,20 @@ def test_trust_engine_breakdown():
     assert pricing["farmer_realisation"] > 20.0
     assert pricing["logistics"] > 0
     assert pricing["platform_service"] > 0
+
+def test_demo_upi_farmer_payment():
+    from app.services.payment_service import process_farmer_payment
+    # if DEMO_MODE && upi_id == "demo@kisankart": allow_login() / bypass gateway
+    res = process_farmer_payment("demo@kisankart", 12500.0, demo_mode=True)
+    assert res["status"] == "SUCCESS"
+    assert res["mode"] == "DEMO_MODE_BYPASS"
+    assert res["upi_id"] == "demo@kisankart"
+    assert "UPI-DEMO-" in res["transaction_id"]
+
+def test_production_payment_api_call_for_other_upi():
+    from app.services.payment_service import process_farmer_payment
+    # else: call_payment_api()
+    res = process_farmer_payment("farmer.patil@okhdfcbank", 12500.0)
+    assert res["status"] == "PROCESSED"
+    assert res["gateway"] == "EXTERNAL_PAYMENT_API"
+    assert "UPI-GATEWAY-" in res["transaction_id"]

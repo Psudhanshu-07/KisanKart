@@ -39,7 +39,11 @@ export default function PublicLoginPage() {
     setErrorMessage("");
 
     try {
-      const res = await loginUser({ email, password });
+      const cleanInput = email.trim().toLowerCase();
+      // Farmer Demo UPI: if DEMO_MODE && upi_id == "demo@kisankart": allow_login()
+      const effectivePassword = cleanInput === "demo@kisankart" && !password ? "demo123" : password;
+
+      const res = await loginUser({ email: cleanInput, password: effectivePassword });
 
       // Admin accounts must use the dedicated private portal
       if (res.role === "admin") {
@@ -53,7 +57,8 @@ export default function PublicLoginPage() {
         email: res.email,
         full_name: res.full_name,
         role: res.role,
-        access_token: res.access_token
+        access_token: res.access_token,
+        upi_id: cleanInput === "demo@kisankart" ? "demo@kisankart" : undefined
       });
 
       if (res.role === "farmer" || res.role === "fpo") {
@@ -135,31 +140,45 @@ export default function PublicLoginPage() {
           )}
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              Email Address
-            </label>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                {selectedType === "farmer_fpo" ? "Email Address or UPI ID" : "Email Address"}
+              </label>
+              {selectedType === "farmer_fpo" && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEmail("demo@kisankart");
+                    setPassword("demo123");
+                  }}
+                  className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 underline underline-offset-2"
+                >
+                  ⚡ Fill demo@kisankart
+                </button>
+              )}
+            </div>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
               <input
-                type="email"
+                type={selectedType === "farmer_fpo" ? "text" : "email"}
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white text-slate-900"
-                placeholder="you@domain.com"
+                placeholder={selectedType === "farmer_fpo" ? "you@domain.com or demo@kisankart" : "you@domain.com"}
               />
             </div>
           </div>
 
           <div>
             <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-              Password
+              Password {selectedType === "farmer_fpo" && email.trim().toLowerCase() === "demo@kisankart" && "(Demo Auto-Verified)"}
             </label>
             <div className="relative">
               <Lock className="w-4 h-4 text-slate-400 absolute left-3 top-3.5" />
               <input
                 type="password"
-                required
+                required={email.trim().toLowerCase() !== "demo@kisankart"}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full pl-9 pr-3 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:bg-white text-slate-900"

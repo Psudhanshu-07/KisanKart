@@ -4,9 +4,10 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import Invoice, AuditLog, User, ProduceListing
+from app.models import Invoice, AuditLog, User, ProduceListing, FarmerProfile
 from app.schemas import InvoiceResponse, FPOPurchaseRequest
 from app.auth import get_current_user
+from app.services.payment_service import process_farmer_payment
 
 router = APIRouter(prefix="/invoices", tags=["Invoices & Settlement Ledgers"])
 
@@ -74,8 +75,17 @@ def mark_invoice_as_paid(id: int, db: Session = Depends(get_db)):
     if not inv:
         raise HTTPException(status_code=404, detail="Invoice not found")
 
+    # Determine farmer / seller UPI ID (defaulting to demo@kisankart)
+    farmer_upi = "demo@kisankart"
+    if inv.seller_id:
+        fp = db.query(FarmerProfile).filter(FarmerProfile.user_id == inv.seller_id).first()
+        if fp and fp.upi_id:
+            farmer_upi = fp.upi_id
+
+    pay_res = process_farmer_payment(upi_id=farmer_upi, amount=inv.gross_amount, payee_name=inv.seller_name or "Farmer")
+
     inv.payment_status = "Paid"
-    inv.payment_ref = f"F2M-PAY-{datetime.utcnow().strftime('%d%m')}-{uuid.uuid4().hex[:6].upper()}"
+    inv.payment_ref = pay_res.get("transaction_id", f"F2M-PAY-{datetime.utcnow().strftime('%d%m')}-{uuid.uuid4().hex[:6].upper()}")
     db.commit()
 
     db.add(AuditLog(

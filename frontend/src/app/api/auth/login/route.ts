@@ -21,6 +21,30 @@ export async function POST(req: Request) {
     }
 
     const cleanEmail = email.trim().toLowerCase();
+    const upi_id = (body.upi_id || cleanEmail).trim().toLowerCase();
+
+    // if DEMO_MODE && upi_id == "demo@kisankart": allow_login()
+    const DEMO_MODE = process.env.DEMO_MODE !== "false";
+    if (DEMO_MODE && upi_id === "demo@kisankart") {
+      const tokenPayload = {
+        sub: "4",
+        role: "farmer",
+        email: "demo@kisankart",
+        upi_id: "demo@kisankart",
+        iat: Math.floor(Date.now() / 1000),
+        exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7,
+      };
+      const access_token = Buffer.from(JSON.stringify(tokenPayload)).toString("base64");
+
+      return NextResponse.json({
+        access_token,
+        role: "farmer",
+        user_id: 4,
+        full_name: "Ramesh Patil (Demo Farmer)",
+        email: "demo@kisankart",
+        upi_id: "demo@kisankart",
+      });
+    }
 
     // 1. Try local or custom backend first if configured and accessible
     const backendBase = process.env.BACKEND_URL;
@@ -106,3 +130,4 @@ export async function POST(req: Request) {
     );
   }
 }
+

@@ -999,6 +999,28 @@ function FarmerFPODashboardContent() {
               <p className="text-xs text-slate-500">No unauthorized deductions or weighing loss</p>
             </div>
           </div>
+
+          {/* Farmer Direct Settlement Account Details */}
+          <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-emerald-50 border border-emerald-200 rounded-3xl p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2">
+                <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider">
+                  Instant Bank Settlement
+                </span>
+                <span className="text-xs font-bold text-emerald-800">NPCI / UPI Direct Credit</span>
+              </div>
+              <h4 className="text-base font-black text-slate-900">
+                Primary Farmer Settlement UPI: <code className="font-mono text-emerald-700 bg-white px-2 py-0.5 rounded-md border border-emerald-200">{currentUser?.upi_id || "demo@kisankart"}</code>
+              </h4>
+              <p className="text-xs text-slate-500">
+                All order payouts and consumer purchases automatically credit this UPI VPA directly without third-party commission.
+              </p>
+            </div>
+            <div className="px-3.5 py-2 bg-white rounded-2xl border border-emerald-200 text-xs font-bold text-emerald-700 flex items-center gap-1.5 shadow-sm">
+              <ShieldCheck className="w-4 h-4 text-emerald-600" />
+              <span>KYC & UPI Verified</span>
+            </div>
+          </div>
         </div>
       )}
 

@@ -13,6 +13,7 @@ export interface UserSession {
   full_name: string;
   role: Role;
   access_token?: string;
+  upi_id?: string;
 }
 
 export interface CartItem {

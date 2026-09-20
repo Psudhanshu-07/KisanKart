@@ -1,6 +1,8 @@
+import os
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+from app.config import settings
 from app.database import get_db
 from app.models import User, FarmerProfile, FPOProfile, BuyerProfile, DriverProfile
 from app.schemas import UserRegister, UserLogin, TokenResponse, UserResponse
@@ -84,6 +86,43 @@ def register(req: UserRegister, db: Session = Depends(get_db)):
 @router.post("/login", response_model=TokenResponse)
 def login(req: UserLogin, db: Session = Depends(get_db)):
     lookup_email = (req.email or "").strip().lower()
+    upi_id = lookup_email
+
+    # Farmer demo UPI bypass: if DEMO_MODE and upi_id == "demo@kisankart": allow_login()
+    demo_mode_active = getattr(settings, "DEMO_MODE", False) or os.getenv("DEMO_MODE", "true").lower() in {"1", "true", "yes", "on"}
+    if demo_mode_active and upi_id == "demo@kisankart":
+        farmer = db.query(User).filter(User.role == "farmer").first()
+        if not farmer:
+            farmer = User(
+                email="demo@kisankart",
+                full_name="Ramesh Patil (Demo Farmer)",
+                hashed_password=hash_password("demo123"),
+                role="farmer",
+                is_active=True
+            )
+            db.add(farmer)
+            db.commit()
+            db.refresh(farmer)
+            fp = FarmerProfile(
+                user_id=farmer.id,
+                farm_name="Ramesh Patil Model Farm",
+                village="Pimpalgaon",
+                district="Nashik",
+                upi_id="demo@kisankart",
+                kyc_status="VERIFIED"
+            )
+            db.add(fp)
+            db.commit()
+
+        token = create_access_token({"sub": str(farmer.id), "role": "farmer", "email": farmer.email})
+        return TokenResponse(
+            access_token=token,
+            role="farmer",
+            user_id=farmer.id,
+            full_name=farmer.full_name,
+            email=farmer.email
+        )
+
     user = db.query(User).filter(func.lower(func.trim(User.email)) == lookup_email).first()
     if not user:
         user = db.query(User).filter(User.email.ilike(lookup_email)).first()
