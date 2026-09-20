@@ -1,7 +1,8 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useApp } from "@/context/AppContext";
 import { RoleGuard } from "@/components/RoleGuard";
 import {
@@ -46,17 +47,131 @@ import {
   Eye
 } from "lucide-react";
 
+// Safe, deterministic date formatting that never throws RangeError and prevents hydration mismatches
+function formatDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return "Recent";
+  try {
+    const raw = String(dateStr);
+    const datePart = raw.split("T")[0];
+    const parts = datePart.split("-");
+    if (parts.length === 3) {
+      return `${parts[2]}/${parts[1]}/${parts[0]}`;
+    }
+    return datePart || "Recent";
+  } catch {
+    return "Recent";
+  }
+}
+
+function formatDateTime(dateStr: string | null | undefined): string {
+  if (!dateStr) return "Platform baseline";
+  try {
+    const raw = String(dateStr);
+    const parts = raw.split("T");
+    const d = parts[0]?.split("-");
+    const t = parts[1]?.split(":");
+    if (d && d.length === 3 && t && t.length >= 2) {
+      return `${d[2]}/${d[1]} ${t[0]}:${t[1]}`;
+    }
+    return formatDate(dateStr);
+  } catch {
+    return "Recent";
+  }
+}
+
+function formatTime(dateStr: string | null | undefined): string {
+  if (!dateStr) return "--:--:--";
+  try {
+    const raw = String(dateStr);
+    const parts = raw.split("T");
+    if (parts[1]) {
+      return parts[1].slice(0, 8);
+    }
+    return raw.slice(0, 8) || "--:--:--";
+  } catch {
+    return "--:--:--";
+  }
+}
+
+class AdminErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  { hasError: boolean; error: Error | null }
+> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: any) {
+    console.error("Admin dashboard client error caught:", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="max-w-4xl mx-auto my-12 p-8 bg-white border border-red-200 rounded-3xl shadow-xl text-center space-y-4">
+          <div className="w-16 h-16 bg-red-100 text-red-600 rounded-2xl flex items-center justify-center mx-auto">
+            <AlertTriangle className="w-8 h-8" />
+          </div>
+          <h2 className="text-2xl font-black text-slate-900">Admin Portal Recovery Mode</h2>
+          <p className="text-xs text-slate-600 max-w-md mx-auto">
+            A temporary client exception occurred while rendering the data: {this.state.error?.message || "Unknown error"}.
+          </p>
+          <div className="pt-4 flex justify-center gap-3">
+            <button
+              onClick={() => {
+                this.setState({ hasError: false, error: null });
+                window.location.reload();
+              }}
+              className="px-5 py-2.5 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition"
+            >
+              Reload Admin Dashboard
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 export default function PrivateAdminDashboardPage() {
   return (
     <RoleGuard allowedRoles={["admin"]} portalName="Private Admin Portal">
-      <AdminDashboardContent />
+      <AdminErrorBoundary>
+        <Suspense fallback={<div className="p-12 text-center text-xs font-bold text-slate-500">Loading operations center...</div>}>
+          <AdminDashboardContent />
+        </Suspense>
+      </AdminErrorBoundary>
     </RoleGuard>
   );
 }
 
 function AdminDashboardContent() {
   const { currentUser } = useApp();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams ? searchParams.get("tab") : null;
   const [activeTab, setActiveTab] = useState<"overview" | "farmers" | "produce" | "pricing" | "demand" | "logistics" | "audit">("overview");
+
+  useEffect(() => {
+    if (tabParam === "produce" || tabParam === "marketplace" || tabParam === "inventory") {
+      setActiveTab("produce");
+    } else if (tabParam === "farmers") {
+      setActiveTab("farmers");
+    } else if (tabParam === "pricing") {
+      setActiveTab("pricing");
+    } else if (tabParam === "demand") {
+      setActiveTab("demand");
+    } else if (tabParam === "logistics") {
+      setActiveTab("logistics");
+    } else if (tabParam === "audit") {
+      setActiveTab("audit");
+    }
+  }, [tabParam]);
 
   const [dashboardData, setDashboardData] = useState<any>(null);
   const [notifications, setNotifications] = useState<any[]>([]);
@@ -172,31 +287,38 @@ function AdminDashboardContent() {
 
   // Filter Farmers
   const filteredFarmers = (dashboardData?.farmers_list || []).filter((f: any) => {
+    if (!f) return false;
     if (!farmerSearchQuery) return true;
     const q = farmerSearchQuery.toLowerCase();
     return (
-      (f.full_name && f.full_name.toLowerCase().includes(q)) ||
-      (f.email && f.email.toLowerCase().includes(q)) ||
-      (f.phone && f.phone.toLowerCase().includes(q)) ||
-      (f.farm_name && f.farm_name.toLowerCase().includes(q)) ||
-      (f.district && f.district.toLowerCase().includes(q)) ||
-      (f.upi_id && f.upi_id.toLowerCase().includes(q))
+      String(f.full_name || "").toLowerCase().includes(q) ||
+      String(f.email || "").toLowerCase().includes(q) ||
+      String(f.phone || "").toLowerCase().includes(q) ||
+      String(f.farm_name || "").toLowerCase().includes(q) ||
+      String(f.district || "").toLowerCase().includes(q) ||
+      String(f.upi_id || "").toLowerCase().includes(q)
     );
   });
 
   // Filter Produce
   const filteredProduce = (dashboardData?.produce_listings || []).filter((item: any) => {
+    if (!item) return false;
     if (produceStatusFilter !== "ALL" && item.status !== produceStatusFilter) {
       return false;
     }
     if (!produceSearchQuery) return true;
     const q = produceSearchQuery.toLowerCase();
+    const name = String(item.produce_name || item.crop_name || item.crop || "");
+    const farmer = String(item.farmer_name || item.user?.full_name || "");
+    const dist = String(item.district || "");
+    const gr = String(item.grade || "");
+    const cat = String(item.category || "");
     return (
-      (item.produce_name && item.produce_name.toLowerCase().includes(q)) ||
-      (item.farmer_name && item.farmer_name.toLowerCase().includes(q)) ||
-      (item.district && item.district.toLowerCase().includes(q)) ||
-      (item.grade && item.grade.toLowerCase().includes(q)) ||
-      (item.category && item.category.toLowerCase().includes(q))
+      name.toLowerCase().includes(q) ||
+      farmer.toLowerCase().includes(q) ||
+      dist.toLowerCase().includes(q) ||
+      gr.toLowerCase().includes(q) ||
+      cat.toLowerCase().includes(q)
     );
   });
 
@@ -491,38 +613,47 @@ function AdminDashboardContent() {
                       </td>
                     </tr>
                   ) : (
-                    dashboardData.produce_listings.slice(0, 5).map((item: any) => (
-                      <tr key={item.id} className="hover:bg-slate-50/70 transition">
-                        <td className="py-3 px-4 font-mono font-bold text-slate-500">#{item.id}</td>
-                        <td className="py-3 px-4">
-                          <div className="font-bold text-slate-900">{item.produce_name}</div>
-                          <div className="text-[10px] text-slate-400">{item.category}</div>
-                        </td>
-                        <td className="py-3 px-4 text-slate-700">{item.farmer_name}</td>
-                        <td className="py-3 px-4">
-                          <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                            Grade {item.grade}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 font-bold text-slate-900">{item.quantity_available} {item.unit}</td>
-                        <td className="py-3 px-4 font-black text-emerald-700">₹{Number(item.price_per_unit).toFixed(2)}/kg</td>
-                        <td className="py-3 px-4 font-bold text-slate-900">
-                          ₹{Number(item.total_value || item.quantity_available * item.price_per_unit).toLocaleString("en-IN")}
-                        </td>
-                        <td className="py-3 px-4 text-slate-600">{item.district}</td>
-                        <td className="py-3 px-4">
-                          <span
-                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
-                              item.status === "AVAILABLE"
-                                ? "bg-emerald-100 text-emerald-800"
-                                : "bg-amber-100 text-amber-800"
-                            }`}
-                          >
-                            {item.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))
+                    dashboardData.produce_listings.slice(0, 5).map((item: any) => {
+                      const cropName = item.produce_name || item.crop_name || item.crop || "Fresh Produce";
+                      const farmerName = item.farmer_name || item.user?.full_name || "Registered Producer";
+                      const qty = Number(item.quantity_available || 0);
+                      const unit = item.unit || "kg";
+                      const price = Number(item.price_per_unit || 0);
+                      const totalVal = Number(item.total_value) || (qty * price);
+
+                      return (
+                        <tr key={item.id} className="hover:bg-slate-50/70 transition">
+                          <td className="py-3 px-4 font-mono font-bold text-slate-500">#{item.id}</td>
+                          <td className="py-3 px-4">
+                            <div className="font-bold text-slate-900">{cropName}</div>
+                            <div className="text-[10px] text-slate-400">{item.category || "Produce"}</div>
+                          </td>
+                          <td className="py-3 px-4 text-slate-700">{farmerName}</td>
+                          <td className="py-3 px-4">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                              Grade {item.grade || "A"}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 font-bold text-slate-900">{qty} {unit}</td>
+                          <td className="py-3 px-4 font-black text-emerald-700">₹{price.toFixed(2)}/kg</td>
+                          <td className="py-3 px-4 font-bold text-slate-900">
+                            ₹{totalVal.toLocaleString("en-IN")}
+                          </td>
+                          <td className="py-3 px-4 text-slate-600">{item.district || "Nashik"}</td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                                item.status === "AVAILABLE"
+                                  ? "bg-emerald-100 text-emerald-800"
+                                  : "bg-amber-100 text-amber-800"
+                              }`}
+                            >
+                              {item.status || "AVAILABLE"}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -780,8 +911,8 @@ function AdminDashboardContent() {
                             <span className="font-bold text-slate-900">{f.listings_count} crops</span>
                             <div className="text-[11px] text-emerald-700 font-bold">{f.total_produce_kg} kg total</div>
                           </td>
-                          <td className="py-3.5 px-4 text-slate-500 text-[11px]">
-                            {f.created_at ? new Date(f.created_at).toLocaleDateString() : "Active"}
+                          <td className="py-3.5 px-4 text-slate-500 text-[11px]" suppressHydrationWarning>
+                            {formatDate(f.created_at)}
                           </td>
                           <td className="py-3.5 px-4 text-right">
                             <button
@@ -864,7 +995,7 @@ function AdminDashboardContent() {
                   {(dashboardData?.produce_listings || []).length} Products
                 </div>
                 <span className="text-[10px] text-emerald-700 font-bold">
-                  {(dashboardData?.produce_listings || []).filter((p: any) => p.status === "AVAILABLE").length} currently available
+                  {(dashboardData?.produce_listings || []).filter((p: any) => p && p.status === "AVAILABLE").length} currently available
                 </span>
               </div>
 
@@ -872,8 +1003,8 @@ function AdminDashboardContent() {
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Total Available Stock</span>
                 <div className="text-xl font-black text-emerald-800 mt-1">
                   {(dashboardData?.produce_listings || [])
-                    .filter((p: any) => p.status === "AVAILABLE")
-                    .reduce((sum: number, p: any) => sum + (p.quantity_available || 0), 0)
+                    .filter((p: any) => p && p.status === "AVAILABLE")
+                    .reduce((sum: number, p: any) => sum + (Number(p?.quantity_available) || 0), 0)
                     .toLocaleString()}{" "}
                   kg
                 </div>
@@ -885,8 +1016,14 @@ function AdminDashboardContent() {
                 <div className="text-xl font-black text-slate-900 mt-1">
                   ₹
                   {(dashboardData?.produce_listings || [])
-                    .filter((p: any) => p.status === "AVAILABLE")
-                    .reduce((sum: number, p: any) => sum + (p.total_value || p.quantity_available * p.price_per_unit || 0), 0)
+                    .filter((p: any) => p && p.status === "AVAILABLE")
+                    .reduce(
+                      (sum: number, p: any) =>
+                        sum +
+                        (Number(p?.total_value) ||
+                          (Number(p?.quantity_available) || 0) * (Number(p?.price_per_unit) || 0)),
+                      0
+                    )
                     .toLocaleString("en-IN")}
                 </div>
                 <span className="text-[10px] text-slate-500">Live platform market value</span>
@@ -896,14 +1033,12 @@ function AdminDashboardContent() {
                 <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Average Farmer Price</span>
                 <div className="text-xl font-black text-emerald-700 mt-1">
                   ₹
-                  {((dashboardData?.produce_listings || []).length > 0
-                    ? (
-                        (dashboardData?.produce_listings || []).reduce(
-                          (sum: number, p: any) => sum + (p.price_per_unit || 0),
-                          0
-                        ) / (dashboardData?.produce_listings || []).length
-                      ).toFixed(1)
-                    : "0.00")}
+                  {(() => {
+                    const list = (dashboardData?.produce_listings || []).filter((p: any) => p != null);
+                    if (list.length === 0) return "0.00";
+                    const total = list.reduce((sum: number, p: any) => sum + (Number(p?.price_per_unit) || 0), 0);
+                    return (total / list.length).toFixed(1);
+                  })()}
                   /kg
                 </div>
                 <span className="text-[10px] text-slate-500">Direct producer realization</span>
@@ -939,63 +1074,73 @@ function AdminDashboardContent() {
                         </td>
                       </tr>
                     ) : (
-                      filteredProduce.map((item: any) => (
-                        <tr key={item.id} className="hover:bg-slate-50/80 transition">
-                          <td className="py-3.5 px-4 font-mono font-bold text-slate-500">#{item.id}</td>
-                          <td className="py-3.5 px-4">
-                            <div className="font-black text-slate-900 text-sm">{item.produce_name}</div>
-                            <div className="text-[11px] text-slate-500">{item.category}</div>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <div className="font-bold text-slate-800">{item.farmer_name}</div>
-                            <div className="text-[11px] text-slate-400">{item.farmer_email}</div>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
-                              Grade {item.grade}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <div className="font-black text-slate-900 text-sm">
-                              {item.quantity_available} {item.unit}
-                            </div>
-                            {item.quantity_initial && item.quantity_initial !== item.quantity_available && (
-                              <div className="text-[10px] text-slate-400">Initial: {item.quantity_initial} kg</div>
-                            )}
-                          </td>
-                          <td className="py-3.5 px-4 font-black text-emerald-700 text-sm">
-                            ₹{Number(item.price_per_unit).toFixed(2)}/kg
-                          </td>
-                          <td className="py-3.5 px-4 font-black text-slate-900">
-                            ₹{Number(item.total_value || item.quantity_available * item.price_per_unit).toLocaleString("en-IN")}
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <div className="font-bold text-slate-700">{item.district}</div>
-                            <div className="text-[11px] text-slate-400">{item.location_name}</div>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                              {item.freshness_window_days} Days
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4">
-                            <span
-                              className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
-                                item.status === "AVAILABLE"
-                                  ? "bg-emerald-100 text-emerald-800"
-                                  : item.status === "RESERVED"
-                                  ? "bg-amber-100 text-amber-800"
-                                  : "bg-blue-100 text-blue-800"
-                              }`}
-                            >
-                              {item.status}
-                            </span>
-                          </td>
-                          <td className="py-3.5 px-4 text-slate-500 text-[11px]">
-                            {item.created_at ? new Date(item.created_at).toLocaleDateString() : "Recent"}
-                          </td>
-                        </tr>
-                      ))
+                      filteredProduce.map((item: any) => {
+                        const cropName = item.produce_name || item.crop_name || item.crop || "Fresh Produce";
+                        const farmerName = item.farmer_name || item.user?.full_name || "Registered Producer";
+                        const farmerEmail = item.farmer_email || item.user?.email || "";
+                        const qty = Number(item.quantity_available || 0);
+                        const unit = item.unit || "kg";
+                        const price = Number(item.price_per_unit || 0);
+                        const totalVal = Number(item.total_value) || (qty * price);
+
+                        return (
+                          <tr key={item.id} className="hover:bg-slate-50/80 transition">
+                            <td className="py-3.5 px-4 font-mono font-bold text-slate-500">#{item.id}</td>
+                            <td className="py-3.5 px-4">
+                              <div className="font-black text-slate-900 text-sm">{cropName}</div>
+                              <div className="text-[11px] text-slate-500">{item.category || "Produce"}</div>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <div className="font-bold text-slate-800">{farmerName}</div>
+                              <div className="text-[11px] text-slate-400">{farmerEmail}</div>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-800 border border-emerald-200">
+                                Grade {item.grade || "A"}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <div className="font-black text-slate-900 text-sm">
+                                {qty} {unit}
+                              </div>
+                              {item.quantity_initial && item.quantity_initial !== item.quantity_available && (
+                                <div className="text-[10px] text-slate-400">Initial: {item.quantity_initial} kg</div>
+                              )}
+                            </td>
+                            <td className="py-3.5 px-4 font-black text-emerald-700 text-sm">
+                              ₹{price.toFixed(2)}/kg
+                            </td>
+                            <td className="py-3.5 px-4 font-black text-slate-900">
+                              ₹{totalVal.toLocaleString("en-IN")}
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <div className="font-bold text-slate-700">{item.district || "Nashik"}</div>
+                              <div className="text-[11px] text-slate-400">{item.location_name || "Farm Cluster"}</div>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                                {item.freshness_window_days ?? 5} Days
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <span
+                                className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wider ${
+                                  item.status === "AVAILABLE"
+                                    ? "bg-emerald-100 text-emerald-800"
+                                    : item.status === "RESERVED"
+                                    ? "bg-amber-100 text-amber-800"
+                                    : "bg-blue-100 text-blue-800"
+                                }`}
+                              >
+                                {item.status || "AVAILABLE"}
+                              </span>
+                            </td>
+                            <td className="py-3.5 px-4 text-slate-500 text-[11px]" suppressHydrationWarning>
+                              {formatDate(item.created_at)}
+                            </td>
+                          </tr>
+                        );
+                      })
                     )}
                   </tbody>
                 </table>
@@ -1090,13 +1235,8 @@ function AdminDashboardContent() {
                   ) : (
                     priceHistory.map((item) => (
                       <tr key={item.id} className="hover:bg-slate-50/70">
-                        <td className="py-3 px-4 text-slate-500">
-                          {new Date(item.created_at).toLocaleDateString("en-IN", {
-                            month: "short",
-                            day: "numeric",
-                            hour: "2-digit",
-                            minute: "2-digit"
-                          })}
+                        <td className="py-3 px-4 text-slate-500 text-[11px]" suppressHydrationWarning>
+                          {formatDateTime(item.created_at)}
                         </td>
                         <td className="py-3 px-4 font-bold text-slate-900">{item.crop}</td>
                         <td className="py-3 px-4 text-slate-500">₹{Number(item.old_indicative_price || 0).toFixed(2)}</td>
@@ -1237,12 +1377,8 @@ function AdminDashboardContent() {
                   ) : (
                     auditLogs.map((log) => (
                       <tr key={log.id} className="hover:bg-slate-50 transition">
-                        <td className="py-3 px-4 text-slate-500 whitespace-nowrap font-sans">
-                          {new Date(log.created_at).toLocaleTimeString("en-IN", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            second: "2-digit"
-                          })}
+                        <td className="py-3 px-4 text-slate-500 whitespace-nowrap font-sans text-[11px]" suppressHydrationWarning>
+                          {formatTime(log.created_at)}
                         </td>
                         <td className="py-3 px-4 text-emerald-700 font-bold whitespace-nowrap">{log.actor}</td>
                         <td className="py-3 px-4 text-slate-900 font-bold whitespace-nowrap">{log.action}</td>

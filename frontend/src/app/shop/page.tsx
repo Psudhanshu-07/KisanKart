@@ -187,8 +187,8 @@ export default function ConsumerShopPage() {
             className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition shrink-0"
           >
             <ShoppingBag className="w-4 h-4" />
-            <span>Cart ({cartCount} kg)</span>
-            <span className="bg-emerald-800 px-2 py-0.5 rounded-md font-mono">
+            <span suppressHydrationWarning>Cart ({cartCount} kg)</span>
+            <span className="bg-emerald-800 px-2 py-0.5 rounded-md font-mono" suppressHydrationWarning>
               ₹{cartTotal.toLocaleString("en-IN")}
             </span>
           </Link>
