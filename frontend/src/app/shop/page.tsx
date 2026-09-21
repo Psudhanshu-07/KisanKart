@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { useApp } from "@/context/AppContext";
 import { getProduceListings } from "@/lib/api";
+import { getProduceImage } from "@/lib/produce-images";
 import {
   ShoppingBag,
   Sparkles,
@@ -249,6 +250,31 @@ export default function ConsumerShopPage() {
                 key={item.id}
                 className="bg-white rounded-3xl border border-slate-200 shadow-sm hover:border-emerald-300 hover:shadow-md transition flex flex-col justify-between overflow-hidden group"
               >
+                {/* Product Image Banner */}
+                {(() => {
+                  const imgData = getProduceImage(cropName);
+                  return (
+                    <div className="relative h-48 w-full overflow-hidden bg-slate-100">
+                      <img
+                        src={imgData.url}
+                        alt={cropName}
+                        loading="lazy"
+                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        onError={(e) => {
+                          const target = e.currentTarget;
+                          target.onerror = null;
+                          target.src = "https://images.unsplash.com/photo-1488459716781-31db52582fe9?w=600&h=400&fit=crop&q=80";
+                        }}
+                      />
+                      <div className={`absolute inset-0 bg-gradient-to-t ${imgData.gradient}`} />
+                      <div className="absolute bottom-3 left-3 flex items-center gap-1.5">
+                        <span className="px-2.5 py-1 bg-white/90 backdrop-blur-sm text-emerald-800 text-[10px] font-extrabold uppercase rounded-full shadow-sm">
+                          🌾 Farm Fresh
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })()}
                 <div className="p-6 space-y-4">
                   {/* Top Badge: Quality Grade & District */}
                   <div className="flex items-center justify-between">
