@@ -12,7 +12,7 @@ const PRODUCE_IMAGES: Record<string, { url: string; gradient: string }> = {
     gradient: "from-amber-900/60 via-amber-800/30 to-transparent",
   },
   tomato: {
-    url: "https://images.unsplash.com/photo-1546470427-0d4db154ceb8?w=600&h=400&fit=crop&q=80",
+    url: "https://images.unsplash.com/photo-1592924357228-91a4daadcfea?w=600&h=400&fit=crop&q=80",
     gradient: "from-red-900/60 via-red-800/30 to-transparent",
   },
   potato: {
