@@ -7,6 +7,45 @@ import { ArrowRight, CheckCircle2, MapPin, Mail, Lock, Phone, User, Sprout, Shop
 import { registerUser } from "@/lib/api";
 import { useApp } from "@/context/AppContext";
 
+const INDIAN_STATES_AND_UTS = [
+  "Andhra Pradesh",
+  "Arunachal Pradesh",
+  "Assam",
+  "Bihar",
+  "Chhattisgarh",
+  "Goa",
+  "Gujarat",
+  "Haryana",
+  "Himachal Pradesh",
+  "Jharkhand",
+  "Karnataka",
+  "Kerala",
+  "Madhya Pradesh",
+  "Maharashtra",
+  "Manipur",
+  "Meghalaya",
+  "Mizoram",
+  "Nagaland",
+  "Odisha",
+  "Punjab",
+  "Rajasthan",
+  "Sikkim",
+  "Tamil Nadu",
+  "Telangana",
+  "Tripura",
+  "Uttar Pradesh",
+  "Uttarakhand",
+  "West Bengal",
+  "Andaman and Nicobar Islands",
+  "Chandigarh",
+  "Dadra and Nagar Haveli and Daman and Diu",
+  "Delhi",
+  "Jammu and Kashmir",
+  "Ladakh",
+  "Lakshadweep",
+  "Puducherry",
+];
+
 export default function RegisterPage() {
   const router = useRouter();
   const { loginSession } = useApp();
@@ -17,6 +56,7 @@ export default function RegisterPage() {
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [district, setDistrict] = useState("Nashik");
+  const [state, setState] = useState("Maharashtra");
   const [address, setAddress] = useState("");
   const [upiId, setUpiId] = useState("");
   const [businessName, setBusinessName] = useState("");
@@ -33,7 +73,7 @@ export default function RegisterPage() {
         district,
         address,
         city: district,
-        state: "Maharashtra",
+        state,
       };
 
       if (role === "farmer") {
@@ -226,6 +266,19 @@ export default function RegisterPage() {
                       placeholder="Create password"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">State / Union Territory</label>
+                  <select
+                    value={state}
+                    onChange={(e) => setState(e.target.value)}
+                    className="w-full rounded-xl border border-slate-300 bg-slate-50 py-2.5 px-3 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white"
+                  >
+                    {INDIAN_STATES_AND_UTS.map((stateName) => (
+                      <option key={stateName} value={stateName}>{stateName}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div>
