@@ -1,5 +1,6 @@
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException
+import re
+from fastapi import APIRouter, Body, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -197,6 +198,55 @@ def remove_admin_producer(user_id: int, db: Session = Depends(get_db)):
     ).update({"status": "REMOVED"}, synchronize_session=False)
     db.commit()
     return {"removed": True, "id": user_id}
+
+@router.patch("/farmers/{user_id}")
+def update_admin_producer(user_id: int, changes: dict = Body(...), db: Session = Depends(get_db)):
+    producer = db.query(User).filter(User.id == user_id, User.role.in_(["farmer", "fpo"])).first()
+    if not producer:
+        raise HTTPException(status_code=404, detail="Farmer or FPO not found")
+
+    if "full_name" in changes:
+        producer.full_name = str(changes["full_name"]).strip()
+    if "phone" in changes:
+        producer.phone = str(changes["phone"]).strip()
+
+    upi_id = str(changes.get("upi_id") or "").strip().lower()
+    if upi_id and not re.fullmatch(r"[a-z0-9][a-z0-9._-]{1,254}@[a-z][a-z0-9.-]{1,62}", upi_id):
+        raise HTTPException(status_code=400, detail="Enter a valid UPI ID")
+
+    if producer.role == "farmer":
+        profile = producer.farmer_profile
+        if not profile:
+            raise HTTPException(status_code=404, detail="Farmer profile not found")
+        if "farm_name" in changes:
+            profile.farm_name = str(changes["farm_name"]).strip()
+        if "district" in changes:
+            profile.district = str(changes["district"]).strip()
+        if upi_id and upi_id != profile.upi_id:
+            duplicate = db.query(FarmerProfile).filter(FarmerProfile.upi_id == upi_id, FarmerProfile.user_id != user_id).first()
+            duplicate = duplicate or db.query(FPOProfile).filter(FPOProfile.upi_id == upi_id, FPOProfile.user_id != user_id).first()
+            if duplicate:
+                raise HTTPException(status_code=400, detail="This UPI ID is already registered")
+            profile.upi_id = upi_id
+            profile.bank_verified = True
+    else:
+        profile = producer.fpo_profile
+        if not profile:
+            raise HTTPException(status_code=404, detail="FPO profile not found")
+        if "farm_name" in changes:
+            profile.fpo_name = str(changes["farm_name"]).strip()
+        if "district" in changes:
+            profile.district = str(changes["district"]).strip()
+        if upi_id and upi_id != profile.upi_id:
+            duplicate = db.query(FarmerProfile).filter(FarmerProfile.upi_id == upi_id, FarmerProfile.user_id != user_id).first()
+            duplicate = duplicate or db.query(FPOProfile).filter(FPOProfile.upi_id == upi_id, FPOProfile.user_id != user_id).first()
+            if duplicate:
+                raise HTTPException(status_code=400, detail="This UPI ID is already registered")
+            profile.upi_id = upi_id
+            profile.bank_verified = True
+
+    db.commit()
+    return {"updated": True, "id": user_id}
 
 @router.get("/notifications")
 def get_notifications(role: str = None, db: Session = Depends(get_db)):

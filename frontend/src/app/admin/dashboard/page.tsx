@@ -185,6 +185,9 @@ function AdminDashboardContent() {
   const [loading, setLoading] = useState(true);
   const [deletingProduceId, setDeletingProduceId] = useState<number | null>(null);
   const [removingProducerId, setRemovingProducerId] = useState<number | null>(null);
+  const [editingProducer, setEditingProducer] = useState<any>(null);
+  const [producerDraft, setProducerDraft] = useState({ full_name: "", phone: "", farm_name: "", district: "", upi_id: "" });
+  const [savingProducer, setSavingProducer] = useState(false);
 
   // Search & Filters for Farmers & Produce Directories
   const [farmerSearchQuery, setFarmerSearchQuery] = useState("");
@@ -321,6 +324,38 @@ function AdminDashboardContent() {
       alert(err.message || "Unable to remove producer");
     } finally {
       setRemovingProducerId(null);
+    }
+  };
+
+  const handleOpenEditProducer = (producer: any) => {
+    setEditingProducer(producer);
+    setProducerDraft({
+      full_name: producer.full_name || "",
+      phone: producer.phone || "",
+      farm_name: producer.farm_name || "",
+      district: producer.district || "",
+      upi_id: producer.upi_id === "Not verified" ? "" : producer.upi_id || "",
+    });
+  };
+
+  const handleSaveProducer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProducer) return;
+    setSavingProducer(true);
+    try {
+      const response = await fetch(`/api/admin/farmers?id=${encodeURIComponent(editingProducer.id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(producerDraft),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || "Unable to update producer details");
+      setEditingProducer(null);
+      await loadAllData();
+    } catch (err: any) {
+      alert(err.message || "Unable to update producer details");
+    } finally {
+      setSavingProducer(false);
     }
   };
 
@@ -956,6 +991,14 @@ function AdminDashboardContent() {
                           <td className="py-3.5 px-4 text-right">
                             <div className="flex justify-end gap-2">
                               <button
+                                onClick={() => handleOpenEditProducer(f)}
+                                title="Edit producer details"
+                                aria-label={`Edit ${f.full_name}`}
+                                className="inline-flex items-center justify-center rounded-lg border border-blue-200 p-1.5 text-blue-600 transition hover:bg-blue-50"
+                              >
+                                <Edit className="h-3.5 w-3.5" />
+                              </button>
+                              <button
                                 onClick={() => {
                                   setProduceSearchQuery(f.full_name);
                                   setActiveTab("produce");
@@ -1461,6 +1504,46 @@ function AdminDashboardContent() {
                 </tbody>
               </table>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Price Rule Modal */}
+      {editingProducer && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6">
+            <div className="flex items-start justify-between border-b border-slate-200 pb-4">
+              <div>
+                <span className="text-[10px] uppercase font-bold text-blue-700 tracking-wider">Admin Producer Control</span>
+                <h3 className="text-xl font-extrabold text-slate-900">Edit {editingProducer.role === "fpo" ? "FPO" : "Farmer"} Details</h3>
+              </div>
+              <button onClick={() => setEditingProducer(null)} className="text-slate-400 hover:text-slate-600 font-bold p-1 text-lg">✕</button>
+            </div>
+            <form onSubmit={handleSaveProducer} className="space-y-4">
+              {[
+                ["Full name", "full_name"],
+                ["Phone", "phone"],
+                [editingProducer.role === "fpo" ? "FPO organization name" : "Farm / business name", "farm_name"],
+                ["District", "district"],
+                ["Verified UPI ID", "upi_id"],
+              ].map(([label, field]) => (
+                <label key={field} className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  {label}
+                  <input
+                    required
+                    value={producerDraft[field as keyof typeof producerDraft]}
+                    onChange={(e) => setProducerDraft((current) => ({ ...current, [field]: e.target.value }))}
+                    className="mt-1 w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-sm font-medium normal-case tracking-normal text-slate-900"
+                  />
+                </label>
+              ))}
+              <div className="pt-2 flex items-center gap-3">
+                <button type="submit" disabled={savingProducer} className="flex-1 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2 disabled:opacity-50">
+                  <Save className="w-4 h-4" /> {savingProducer ? "Saving..." : "Save Producer Details"}
+                </button>
+                <button type="button" onClick={() => setEditingProducer(null)} className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">Cancel</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

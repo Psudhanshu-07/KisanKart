@@ -527,6 +527,22 @@ function FarmerFPODashboardContent() {
                     <option value="Potato">Potato (बटाटा / आलू)</option>
                     <option value="Green Chilli">Green Chilli (मिरची / मिर्च)</option>
                     <option value="Capsicum">Capsicum (शिमला मिर्च)</option>
+                    <option value="Cabbage">Cabbage (पत्तागोभी)</option>
+                    <option value="Cauliflower">Cauliflower (फूलगोभी)</option>
+                    <option value="Carrot">Carrot (गाजर)</option>
+                    <option value="Cucumber">Cucumber (खीरा)</option>
+                    <option value="Spinach">Spinach (पालक)</option>
+                    <option value="Okra">Okra / Ladyfinger (भिंडी)</option>
+                    <option value="Brinjal">Brinjal / Eggplant (बैंगन)</option>
+                    <option value="Peas">Peas (मटर)</option>
+                    <option value="Garlic">Garlic (लहसुन)</option>
+                    <option value="Ginger">Ginger (अदरक)</option>
+                    <option value="Sweet Corn">Sweet Corn (मक्का)</option>
+                    <option value="Wheat">Wheat (गेहूं)</option>
+                    <option value="Rice">Rice (चावल)</option>
+                    <option value="Grapes">Grapes (अंगूर)</option>
+                    <option value="Banana">Banana (केला)</option>
+                    <option value="Mango">Mango (आम)</option>
                   </select>
                 </div>
 
@@ -766,6 +782,22 @@ function FarmerFPODashboardContent() {
                     <option value="Onion">Onion</option>
                     <option value="Potato">Potato</option>
                     <option value="Capsicum">Capsicum</option>
+                    <option value="Cabbage">Cabbage</option>
+                    <option value="Cauliflower">Cauliflower</option>
+                    <option value="Carrot">Carrot</option>
+                    <option value="Cucumber">Cucumber</option>
+                    <option value="Spinach">Spinach</option>
+                    <option value="Okra">Okra / Ladyfinger</option>
+                    <option value="Brinjal">Brinjal / Eggplant</option>
+                    <option value="Peas">Peas</option>
+                    <option value="Garlic">Garlic</option>
+                    <option value="Ginger">Ginger</option>
+                    <option value="Sweet Corn">Sweet Corn</option>
+                    <option value="Wheat">Wheat</option>
+                    <option value="Rice">Rice</option>
+                    <option value="Grapes">Grapes</option>
+                    <option value="Banana">Banana</option>
+                    <option value="Mango">Mango</option>
                   </select>
                 </div>
 
