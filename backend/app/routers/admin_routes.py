@@ -1,9 +1,9 @@
 from typing import List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import User, Order, ProduceListing, Notification, BuyerRequirement, Route, RouteStop, FarmerProfile, FPOProfile
+from app.models import User, Order, OrderItem, MatchItem, ProduceListing, Notification, BuyerRequirement, Route, RouteStop, FarmerProfile, FPOProfile
 from app.schemas import AdminDashboardStats, RegionSupplyDemandGap
 
 router = APIRouter(prefix="/admin", tags=["Admin & Government Intelligence Dashboard"])
@@ -159,6 +159,24 @@ def get_admin_farmers(db: Session = Depends(get_db)):
 def get_admin_produce(db: Session = Depends(get_db)):
     dash = get_admin_dashboard(db)
     return dash.produce_listings
+
+@router.delete("/produce/{listing_id}")
+def delete_admin_produce(listing_id: int, db: Session = Depends(get_db)):
+    listing = db.query(ProduceListing).filter(ProduceListing.id == listing_id).first()
+    if not listing:
+        raise HTTPException(status_code=404, detail="Produce listing not found")
+
+    has_matches = db.query(MatchItem).filter(MatchItem.listing_id == listing_id).first()
+    has_orders = db.query(OrderItem).filter(OrderItem.listing_id == listing_id).first()
+    if has_matches or has_orders:
+        raise HTTPException(
+            status_code=409,
+            detail="This listing is linked to an order or matching record and cannot be removed.",
+        )
+
+    db.delete(listing)
+    db.commit()
+    return {"deleted": True, "id": listing_id}
 
 @router.get("/drivers")
 def get_drivers(db: Session = Depends(get_db)):

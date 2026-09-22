@@ -44,7 +44,8 @@ import {
   Phone,
   Mail,
   ShoppingBag,
-  Eye
+  Eye,
+  Trash2
 } from "lucide-react";
 
 // Safe, deterministic date formatting that never throws RangeError and prevents hydration mismatches
@@ -182,6 +183,7 @@ function AdminDashboardContent() {
   const [selectedDriver, setSelectedDriver] = useState<Record<number, number>>({});
   const [routeMessage, setRouteMessage] = useState("");
   const [loading, setLoading] = useState(true);
+  const [deletingProduceId, setDeletingProduceId] = useState<number | null>(null);
 
   // Search & Filters for Farmers & Produce Directories
   const [farmerSearchQuery, setFarmerSearchQuery] = useState("");
@@ -283,6 +285,27 @@ function AdminDashboardContent() {
   const handleNotifyFPOs = () => {
     setFpoNotified(true);
     setTimeout(() => setFpoNotified(false), 4000);
+  };
+
+  const handleDeleteProduce = async (item: any) => {
+    const cropName = item.produce_name || item.crop_name || item.crop || "this product";
+    if (!window.confirm(`Remove ${cropName} from the marketplace?`)) return;
+
+    setDeletingProduceId(item.id);
+    try {
+      const response = await fetch(`/api/admin/produce?id=${encodeURIComponent(item.id)}`, {
+        method: "DELETE",
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.detail || "Unable to remove this product");
+      }
+      await loadAllData();
+    } catch (err: any) {
+      alert(err.message || "Unable to remove this product");
+    } finally {
+      setDeletingProduceId(null);
+    }
   };
 
   // Filter Farmers
@@ -1062,12 +1085,13 @@ function AdminDashboardContent() {
                       <th className="py-3.5 px-4">Freshness</th>
                       <th className="py-3.5 px-4">Status</th>
                       <th className="py-3.5 px-4">Listed Date</th>
+                      <th className="py-3.5 px-4">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100 font-medium">
                     {filteredProduce.length === 0 ? (
                       <tr>
-                        <td colSpan={11} className="py-12 text-center text-slate-400">
+                        <td colSpan={12} className="py-12 text-center text-slate-400">
                           {dashboardData?.produce_listings?.length === 0
                             ? "No produce listings have been posted by farmers yet."
                             : "No produce listings match your search and filter criteria."}
@@ -1137,6 +1161,18 @@ function AdminDashboardContent() {
                             </td>
                             <td className="py-3.5 px-4 text-slate-500 text-[11px]" suppressHydrationWarning>
                               {formatDate(item.created_at)}
+                            </td>
+                            <td className="py-3.5 px-4">
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteProduce(item)}
+                                disabled={deletingProduceId === item.id}
+                                title="Remove product"
+                                aria-label={`Remove ${cropName}`}
+                                className="inline-flex items-center justify-center rounded-lg border border-red-200 p-2 text-red-600 transition hover:bg-red-50 disabled:cursor-wait disabled:opacity-50"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
                             </td>
                           </tr>
                         );
