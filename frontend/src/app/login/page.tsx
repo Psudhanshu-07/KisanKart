@@ -58,7 +58,7 @@ export default function PublicLoginPage() {
         full_name: res.full_name,
         role: res.role,
         access_token: res.access_token,
-        upi_id: cleanInput === "demo@kisankart" ? "demo@kisankart" : undefined
+        upi_id: res.upi_id || (cleanInput === "demo@kisankart" ? "demo@kisankart" : undefined)
       });
 
       if (res.role === "farmer" || res.role === "fpo") {

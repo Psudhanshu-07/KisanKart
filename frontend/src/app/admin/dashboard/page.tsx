@@ -184,6 +184,7 @@ function AdminDashboardContent() {
   const [routeMessage, setRouteMessage] = useState("");
   const [loading, setLoading] = useState(true);
   const [deletingProduceId, setDeletingProduceId] = useState<number | null>(null);
+  const [removingProducerId, setRemovingProducerId] = useState<number | null>(null);
 
   // Search & Filters for Farmers & Produce Directories
   const [farmerSearchQuery, setFarmerSearchQuery] = useState("");
@@ -305,6 +306,21 @@ function AdminDashboardContent() {
       alert(err.message || "Unable to remove this product");
     } finally {
       setDeletingProduceId(null);
+    }
+  };
+
+  const handleRemoveProducer = async (producer: any) => {
+    if (!window.confirm(`Remove ${producer.full_name} from the active producer registry?`)) return;
+    setRemovingProducerId(producer.id);
+    try {
+      const response = await fetch(`/api/admin/farmers?id=${encodeURIComponent(producer.id)}`, { method: "DELETE" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.detail || "Unable to remove producer");
+      await loadAllData();
+    } catch (err: any) {
+      alert(err.message || "Unable to remove producer");
+    } finally {
+      setRemovingProducerId(null);
     }
   };
 
@@ -938,15 +954,26 @@ function AdminDashboardContent() {
                             {formatDate(f.created_at)}
                           </td>
                           <td className="py-3.5 px-4 text-right">
-                            <button
-                              onClick={() => {
-                                setProduceSearchQuery(f.full_name);
-                                setActiveTab("produce");
-                              }}
-                              className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition"
-                            >
-                              <Eye className="w-3 h-3" /> Products
-                            </button>
+                            <div className="flex justify-end gap-2">
+                              <button
+                                onClick={() => {
+                                  setProduceSearchQuery(f.full_name);
+                                  setActiveTab("produce");
+                                }}
+                                className="px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-bold inline-flex items-center gap-1 transition"
+                              >
+                                <Eye className="w-3 h-3" /> Products
+                              </button>
+                              <button
+                                onClick={() => handleRemoveProducer(f)}
+                                disabled={removingProducerId === f.id}
+                                title="Remove producer access"
+                                aria-label={`Remove ${f.full_name}`}
+                                className="inline-flex items-center justify-center rounded-lg border border-red-200 p-1.5 text-red-600 transition hover:bg-red-50 disabled:cursor-wait disabled:opacity-50"
+                              >
+                                <Trash2 className="h-3.5 w-3.5" />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))

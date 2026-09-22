@@ -58,6 +58,8 @@ class FPOProfile(Base):
     member_count = Column(Integer, default=120)
     collection_centers_count = Column(Integer, default=3)
     verification_status = Column(String(50), default="VERIFIED")
+    bank_verified = Column(Boolean, default=False)
+    upi_id = Column(String(100), nullable=True)
 
     user = relationship("User", back_populates="fpo_profile")
 

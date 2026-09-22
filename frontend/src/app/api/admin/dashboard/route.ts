@@ -71,7 +71,7 @@ export async function GET(req: Request) {
     }
 
     // Format farmers list
-    const producerUsers = allUsers.filter((u) => u.role === "farmer" || u.role === "fpo");
+    const producerUsers = allUsers.filter((u) => (u.role === "farmer" || u.role === "fpo") && u.is_active !== false);
     const formattedFarmersList = producerUsers.map((u) => {
       const fp = farmerProfileMap.get(u.id);
       const fpo = fpoProfileMap.get(u.id);

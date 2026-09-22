@@ -1,4 +1,5 @@
 import os
+import re
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -24,6 +25,16 @@ def register(req: UserRegister, db: Session = Depends(get_db)):
     if not resolved_full_name:
         resolved_full_name = "Kisan Farmer" if requested_role == "farmer" else "Kisan FPO" if requested_role == "fpo" else "Buyer"
 
+    p_data = req.profile_data or {}
+    upi_id = str(p_data.get("upi_id") or "").strip().lower()
+    if requested_role in {"farmer", "fpo"}:
+        if not re.fullmatch(r"[a-z0-9][a-z0-9._-]{1,254}@[a-z][a-z0-9.-]{1,62}", upi_id):
+            raise HTTPException(status_code=400, detail="A valid UPI ID is required for farmer and FPO registration")
+        if upi_id == "demo@kisankart" and os.getenv("DEMO_MODE", "true").lower() == "false":
+            raise HTTPException(status_code=400, detail="Demo UPI is not available outside demo mode")
+        if db.query(FarmerProfile).filter(FarmerProfile.upi_id == upi_id).first() or db.query(FPOProfile).filter(FPOProfile.upi_id == upi_id).first():
+            raise HTTPException(status_code=400, detail="This UPI ID is already registered")
+
     user = User(
         email=req.email,
         full_name=resolved_full_name,
@@ -36,7 +47,6 @@ def register(req: UserRegister, db: Session = Depends(get_db)):
     db.refresh(user)
 
     # Provision role profile
-    p_data = req.profile_data or {}
     if user.role == "farmer":
         fp = FarmerProfile(
             user_id=user.id,
@@ -44,7 +54,7 @@ def register(req: UserRegister, db: Session = Depends(get_db)):
             village=p_data.get("village", "Farm Gate"),
             district=p_data.get("district", "Nashik"),
             land_size_acres=float(p_data.get("land_size_acres", 3.0) or 3.0),
-            upi_id=p_data.get("upi_id", "demo@kisankart"),
+            upi_id=upi_id,
             kyc_status="VERIFIED"
         )
         db.add(fp)
@@ -54,7 +64,9 @@ def register(req: UserRegister, db: Session = Depends(get_db)):
             fpo_name=p_data.get("fpo_name") or p_data.get("business_name") or f"{user.full_name} FPO",
             district=p_data.get("district", "Nashik"),
             member_count=int(p_data.get("member_count", 150) or 150),
-            verification_status="VERIFIED"
+            verification_status="VERIFIED",
+            bank_verified=True,
+            upi_id=upi_id,
         )
         db.add(fpop)
     elif user.role == "buyer":
@@ -85,7 +97,8 @@ def register(req: UserRegister, db: Session = Depends(get_db)):
         role=user.role,
         user_id=user.id,
         full_name=user.full_name,
-        email=user.email
+        email=user.email,
+        upi_id=(user.farmer_profile.upi_id if user.farmer_profile else user.fpo_profile.upi_id if user.fpo_profile else None)
     )
 
 @router.post("/login", response_model=TokenResponse)
@@ -125,12 +138,27 @@ def login(req: UserLogin, db: Session = Depends(get_db)):
             role="farmer",
             user_id=farmer.id,
             full_name=farmer.full_name,
-            email=farmer.email
+            email=farmer.email,
+            upi_id="demo@kisankart"
         )
 
     user = db.query(User).filter(func.lower(func.trim(User.email)) == lookup_email).first()
     if not user:
         user = db.query(User).filter(User.email.ilike(lookup_email)).first()
+    if not user:
+        farmer_profile = db.query(FarmerProfile).filter(
+            func.lower(func.trim(FarmerProfile.upi_id)) == lookup_email,
+            FarmerProfile.bank_verified == True,
+            FarmerProfile.kyc_status == "VERIFIED",
+        ).first()
+        fpo_profile = db.query(FPOProfile).filter(
+            func.lower(func.trim(FPOProfile.upi_id)) == lookup_email,
+            FPOProfile.bank_verified == True,
+            FPOProfile.verification_status == "VERIFIED",
+        ).first()
+        profile = farmer_profile or fpo_profile
+        if profile:
+            user = db.query(User).filter(User.id == profile.user_id).first()
 
     if not user or not verify_password(req.password, user.hashed_password):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid email or password")
@@ -144,7 +172,8 @@ def login(req: UserLogin, db: Session = Depends(get_db)):
         role=user.role,
         user_id=user.id,
         full_name=user.full_name,
-        email=user.email
+        email=user.email,
+        upi_id=(user.farmer_profile.upi_id if user.farmer_profile else user.fpo_profile.upi_id if user.fpo_profile else None)
     )
 
 @router.get("/me", response_model=UserResponse)
@@ -156,6 +185,13 @@ def get_me(current_user: User = Depends(get_current_user), db: Session = Depends
             "district": current_user.farmer_profile.district,
             "kyc_status": current_user.farmer_profile.kyc_status,
             "bank_verified": current_user.farmer_profile.bank_verified
+        }
+    elif current_user.role == "fpo" and current_user.fpo_profile:
+        prof_dict = {
+            "fpo_name": current_user.fpo_profile.fpo_name,
+            "district": current_user.fpo_profile.district,
+            "verification_status": current_user.fpo_profile.verification_status,
+            "bank_verified": current_user.fpo_profile.bank_verified,
         }
     elif current_user.role == "buyer" and current_user.buyer_profile:
         prof_dict = {

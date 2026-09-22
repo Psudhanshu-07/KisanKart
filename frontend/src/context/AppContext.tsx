@@ -24,6 +24,7 @@ export interface CartItem {
   price_per_kg: number;
   farmer_name: string;
   farmer_id: number;
+  payment_upi_id?: string;
   district: string;
   shelf_life_days?: number;
 }

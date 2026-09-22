@@ -15,7 +15,7 @@ class UserRegister(BaseModel):
     profile_data: Optional[Dict[str, Any]] = None
 
 class UserLogin(BaseModel):
-    email: EmailStr
+    email: str
     password: str
 
 class TokenResponse(BaseModel):
@@ -25,6 +25,7 @@ class TokenResponse(BaseModel):
     user_id: int
     full_name: str
     email: str
+    upi_id: Optional[str] = None
 
 class UserResponse(BaseModel):
     id: int
@@ -84,6 +85,7 @@ class ListingResponse(BaseModel):
     created_at: datetime
     farmer_name: Optional[str] = None
     trust_score: Optional[float] = 94.0
+    payment_upi_id: Optional[str] = None
 
     class Config:
         from_attributes = True

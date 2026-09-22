@@ -224,6 +224,9 @@ export default function ConsumerCartCheckoutPage() {
                     <div className="text-xs text-slate-500">
                       Farmer: {item.farmer_name} • {item.district}
                     </div>
+                    <div className="text-xs text-emerald-700 font-semibold">
+                      Verified payment UPI: {item.payment_upi_id || "Unavailable"}
+                    </div>
                     <div className="text-xs text-slate-600 font-semibold">
                       ₹{item.price_per_kg.toFixed(2)} / kg
                     </div>

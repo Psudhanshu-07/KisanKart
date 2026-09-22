@@ -85,6 +85,7 @@ export default function ConsumerShopPage() {
       price_per_kg: consumerPrice,
       farmer_name: produce.farmer_name || "Verified Producer",
       farmer_id: produce.farmer_id || produce.user_id || 1,
+      payment_upi_id: produce.payment_upi_id,
       district: produce.district || "Nashik",
       shelf_life_days: produce.freshness_window_days || produce.shelf_life_days || 5
     });

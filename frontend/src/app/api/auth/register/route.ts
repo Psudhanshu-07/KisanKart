@@ -21,6 +21,10 @@ export async function POST(req: Request) {
     }
 
     const cleanEmail = email.trim().toLowerCase();
+    const producerUpi = String(profile_data.upi_id || "").trim().toLowerCase();
+    if ((role === "farmer" || role === "fpo") && !/^[a-z0-9][a-z0-9._-]{1,254}@[a-z][a-z0-9.-]{1,62}$/i.test(producerUpi)) {
+      return NextResponse.json({ detail: "A valid UPI ID is required for farmer and FPO registration" }, { status: 400 });
+    }
     const resolvedName = (
       body.full_name ||
       body.name ||
@@ -152,6 +156,8 @@ export async function POST(req: Request) {
             member_count: 120,
             collection_centers_count: 3,
             verification_status: "VERIFIED",
+            bank_verified: true,
+            upi_id: producerUpi,
           }),
         });
       } else if (role === "buyer") {

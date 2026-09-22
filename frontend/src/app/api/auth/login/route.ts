@@ -82,14 +82,28 @@ export async function POST(req: Request) {
     }
 
     const users = await res.json();
-    if (!users || users.length === 0) {
-      return NextResponse.json(
-        { detail: "Invalid email or password" },
-        { status: 401 }
-      );
+    let user = users?.[0];
+    let verifiedUpi = "";
+    if (!user) {
+      for (const profileTable of ["farmer_profiles", "fpo_profiles"]) {
+        const profileRes = await fetch(
+          `${SUPABASE_URL}/rest/v1/${profileTable}?upi_id=ilike.${encodeURIComponent(cleanEmail)}&bank_verified=eq.true&select=user_id,upi_id`,
+          { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }, cache: "no-store" }
+        );
+        const profiles = profileRes.ok ? await profileRes.json() : [];
+        if (profiles.length > 0) {
+          const userRes = await fetch(`${SUPABASE_URL}/rest/v1/users?id=eq.${profiles[0].user_id}&select=*`, {
+            headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` }, cache: "no-store"
+          });
+          user = (await userRes.json())?.[0];
+          verifiedUpi = profiles[0].upi_id;
+          break;
+        }
+      }
     }
-
-    const user = users[0];
+    if (!user) {
+      return NextResponse.json({ detail: "Invalid email, UPI ID, or password" }, { status: 401 });
+    }
 
     if (!user.is_active) {
       return NextResponse.json(
@@ -122,6 +136,7 @@ export async function POST(req: Request) {
       user_id: user.id,
       full_name: user.full_name,
       email: user.email,
+      upi_id: verifiedUpi || undefined,
     });
   } catch (error: any) {
     return NextResponse.json(

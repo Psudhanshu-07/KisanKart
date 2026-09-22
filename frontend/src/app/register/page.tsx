@@ -52,6 +52,10 @@ export default function RegisterPage() {
         profileData.delivery_address = address || "Buyer address";
       }
 
+      if ((role === "farmer" || role === "fpo") && !/^[a-z0-9][a-z0-9._-]{1,254}@[a-z][a-z0-9.-]{1,62}$/i.test(upiId.trim())) {
+        throw new Error("Enter a valid UPI ID to receive consumer payments.");
+      }
+
       const res = await registerUser({
         email,
         full_name: fullName,
@@ -270,10 +274,11 @@ export default function RegisterPage() {
                   <div className="sm:col-span-2">
                     <label className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-slate-700">UPI / payment receiving ID</label>
                     <input
+                      required
                       value={upiId}
                       onChange={(e) => setUpiId(e.target.value)}
                       className="w-full rounded-xl border border-slate-300 bg-slate-50 py-2.5 px-3 text-sm text-slate-900 outline-none transition focus:border-orange-400 focus:bg-white"
-                      placeholder={role === "fpo" ? "fpo@upi or demo@kisankart" : "farmername@upi or demo@kisankart"}
+                      placeholder={role === "fpo" ? "fpo@upi" : "farmername@upi"}
                     />
                   </div>
                 )}

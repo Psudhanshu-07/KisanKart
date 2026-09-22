@@ -75,7 +75,7 @@ def get_admin_dashboard(db: Session = Depends(get_db)):
             "route_assigned": bool(order.routes),
         })
 
-    farmer_users = db.query(User).filter(User.role.in_(["farmer", "fpo"])).order_by(User.created_at.desc()).all()
+    farmer_users = db.query(User).filter(User.role.in_(["farmer", "fpo"]), User.is_active == True).order_by(User.created_at.desc()).all()
     farmers_list = []
     for f in farmer_users:
         f_prof = db.query(FarmerProfile).filter(FarmerProfile.user_id == f.id).first()
@@ -85,7 +85,7 @@ def get_admin_dashboard(db: Session = Depends(get_db)):
 
         farm_name = fpo_prof.fpo_name if fpo_prof else (f_prof.farm_name if f_prof and f_prof.farm_name else f"{f.full_name}'s Farm")
         district = fpo_prof.district if fpo_prof else (f_prof.district if f_prof and f_prof.district else "Nashik")
-        upi_id = f_prof.upi_id if f_prof and f_prof.upi_id else "demo@kisankart"
+        upi_id = f_prof.upi_id if f_prof and f_prof.upi_id else (fpo_prof.upi_id if fpo_prof and fpo_prof.upi_id else "Not verified")
         kyc = f_prof.kyc_status if f_prof else (fpo_prof.verification_status if fpo_prof else "VERIFIED")
 
         farmers_list.append({
@@ -184,6 +184,19 @@ def get_drivers(db: Session = Depends(get_db)):
         {"id": driver.id, "full_name": driver.full_name, "phone": driver.phone}
         for driver in db.query(User).filter(User.role == "driver", User.is_active == True).order_by(User.full_name).all()
     ]
+
+@router.delete("/farmers/{user_id}")
+def remove_admin_producer(user_id: int, db: Session = Depends(get_db)):
+    producer = db.query(User).filter(User.id == user_id, User.role.in_(["farmer", "fpo"])).first()
+    if not producer:
+        raise HTTPException(status_code=404, detail="Farmer or FPO not found")
+    producer.is_active = False
+    db.query(ProduceListing).filter(
+        ProduceListing.user_id == user_id,
+        ProduceListing.status == "AVAILABLE",
+    ).update({"status": "REMOVED"}, synchronize_session=False)
+    db.commit()
+    return {"removed": True, "id": user_id}
 
 @router.get("/notifications")
 def get_notifications(role: str = None, db: Session = Depends(get_db)):

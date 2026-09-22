@@ -72,7 +72,12 @@ def get_listings(
             is_fpo_aggregated=item.is_fpo_aggregated,
             created_at=item.created_at,
             farmer_name=f_name,
-            trust_score=t_score
+            trust_score=t_score,
+            payment_upi_id=(
+                farmer_user.farmer_profile.upi_id if farmer_user and farmer_user.farmer_profile
+                else farmer_user.fpo_profile.upi_id if farmer_user and farmer_user.fpo_profile
+                else None
+            )
         ))
     return resp
 

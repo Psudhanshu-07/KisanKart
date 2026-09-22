@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from sqlalchemy import text
+from sqlalchemy import inspect, text
 from app.config import settings
 from app.database import engine, Base
 from app.seed_data import seed_database
@@ -56,7 +56,12 @@ app.include_router(audit_routes.router, prefix="/api")
 @app.on_event("startup")
 def on_startup():
     # Public deployment should not preload demo products or fake sellers.
-    pass
+    with engine.begin() as connection:
+        columns = {column["name"] for column in inspect(connection).get_columns("fpo_profiles")}
+        if "bank_verified" not in columns:
+            connection.execute(text("ALTER TABLE fpo_profiles ADD COLUMN bank_verified BOOLEAN DEFAULT TRUE"))
+        if "upi_id" not in columns:
+            connection.execute(text("ALTER TABLE fpo_profiles ADD COLUMN upi_id VARCHAR(100)"))
 
 @app.get("/")
 def root():

@@ -58,7 +58,7 @@ export async function GET(req: Request) {
     }
 
     // 2. Fetch from Supabase directly
-    let queryUrl = `${SUPABASE_URL}/rest/v1/produce_listings?status=eq.AVAILABLE&order=created_at.desc&select=*,user:users(id,full_name)`;
+    let queryUrl = `${SUPABASE_URL}/rest/v1/produce_listings?status=eq.AVAILABLE&order=created_at.desc&select=*,user:users(id,full_name,farmer_profile:farmer_profiles(upi_id,bank_verified),fpo_profile:fpo_profiles(upi_id,bank_verified))`;
     const crop = searchParams.get("crop");
     if (crop) {
       queryUrl += `&produce_name=ilike.*${encodeURIComponent(crop)}*`;
@@ -102,6 +102,10 @@ export async function GET(req: Request) {
       is_fpo_aggregated: item.is_fpo_aggregated || false,
       created_at: item.created_at,
       farmer_name: item.user?.full_name || "Registered Producer",
+      payment_upi_id:
+        (item.user?.farmer_profile?.[0]?.bank_verified && item.user?.farmer_profile?.[0]?.upi_id) ||
+        (item.user?.fpo_profile?.[0]?.bank_verified && item.user?.fpo_profile?.[0]?.upi_id) ||
+        null,
       trust_score: 94.0,
     }));
 
